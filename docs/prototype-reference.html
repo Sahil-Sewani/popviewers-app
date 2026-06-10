@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PopViewers – Vibes & Views Prototype</title>
+  <style>
+    :root {
+      --bg: #090914;
+      --bg2: #131325;
+      --surface: rgba(255, 255, 255, 0.74);
+      --surface-strong: rgba(255, 255, 255, 0.9);
+      --surface-soft: rgba(255, 255, 255, 0.58);
+      --text: #101114;
+      --muted: #676b75;
+      --line: rgba(255, 255, 255, 0.28);
+      --purple: #7340ff;
+      --blue: #3f7cff;
+      --magenta: #ff3ea5;
+      --pink: #ff69c8;
+      --good: #13b98b;
+      --gradient: linear-gradient(135deg, #7340ff 0%, #3f7cff 45%, #ff3ea5 100%);
+      --gradient-soft: linear-gradient(135deg, rgba(115,64,255,.14), rgba(63,124,255,.14), rgba(255,62,165,.14));
+      --shadow: 0 30px 80px rgba(0,0,0,.28);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(115,64,255,0.26), transparent 28%),
+        radial-gradient(circle at top right, rgba(255,62,165,0.18), transparent 30%),
+        radial-gradient(circle at bottom center, rgba(63,124,255,0.16), transparent 22%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 32px;
+      color: var(--text);
+    }
+
+    .phone-shell {
+      width: 430px;
+      max-width: 100%;
+      padding: 14px;
+      border-radius: 42px;
+      background: linear-gradient(180deg, #1c1c22 0%, #0f0f14 100%);
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .phone {
+      width: 100%;
+      height: 860px;
+      max-height: 90vh;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.74), rgba(255,255,255,0.84)),
+        linear-gradient(135deg, rgba(115,64,255,0.08), rgba(63,124,255,0.08), rgba(255,62,165,0.06));
+      backdrop-filter: blur(18px);
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 126px;
+      height: 34px;
+      border-radius: 999px;
+      background: #08080c;
+      z-index: 20;
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      padding: 68px 22px 28px;
+      overflow-y: auto;
+      animation: fadeUp .35s ease;
+    }
+
+    .screen.active { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .logo-wrap, .glass-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 30px rgba(17, 17, 17, .08);
+    }
+
+    .logo-wrap { padding: 16px 18px; }
+    .logo { width: 180px; max-width: 100%; display: block; }
+
+    .hero {
+      padding: 24px 22px;
+      position: relative;
+      overflow: hidden;
+      background: var(--surface-strong);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      background: var(--gradient);
+      opacity: .12;
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #5d6270;
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    h1, h2 {
+      margin: 0;
+      color: #0e1015;
+      line-height: 1.04;
+      letter-spacing: -0.03em;
+    }
+
+    h1 { font-size: 34px; font-weight: 760; }
+    h2 { font-size: 30px; font-weight: 750; margin-bottom: 10px; }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .hero p { margin-top: 12px; position: relative; z-index: 1; }
+
+    .button-row, .nav-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      appearance: none;
+      border: none;
+      border-radius: 999px;
+      padding: 15px 20px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .button:hover { transform: translateY(-1px); }
+    .button.primary {
+      color: #fff;
+      background: var(--gradient);
+      box-shadow: 0 16px 30px rgba(115,64,255,.25);
+    }
+    .button.secondary {
+      background: rgba(255,255,255,.78);
+      color: #16171b;
+      border: 1px solid rgba(17,17,17,.08);
+    }
+
+    .subtle-note {
+      margin-top: 14px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: var(--surface-soft);
+      border: 1px solid rgba(17,17,17,.04);
+      color: #50505a;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .section { margin-top: 18px; }
+    .mini-label {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #7b7b84;
+      margin-bottom: 10px;
+    }
+
+    .search-box, .input-box {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,.88);
+      border: 1px solid rgba(17,17,17,.08);
+      border-radius: 16px;
+      padding: 14px 16px;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      color: #111;
+      font-family: inherit;
+    }
+
+    input::placeholder, textarea::placeholder { color: #9a9aa1; }
+
+    .stack { display: flex; flex-direction: column; gap: 12px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+    .card-option, .streaming-badge, .chip, .choice-pill, .device-card {
+      border-radius: 18px;
+      border: 1px solid rgba(17,17,17,.08);
+      background: rgba(255,255,255,.84);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .card-option:hover, .streaming-badge:hover, .chip:hover, .choice-pill:hover, .device-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 24px rgba(0,0,0,.06);
+    }
+
+    .selected {
+      outline: 2px solid rgba(115,64,255,.35);
+      background: var(--gradient-soft) !important;
+      border-color: rgba(115,64,255,.2) !important;
+    }
+
+    .title-option {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 16px;
+      border-radius: 18px;
+      border: 1px solid rgba(17,17,17,.06);
+      background: rgba(255,255,255,.84);
+      cursor: pointer;
+      transition: all .2s ease;
+    }
+
+    .title-option:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(0,0,0,.06); }
+
+    .title-meta { display: flex; flex-direction: column; gap: 5px; text-align: left; }
+    .title-name { font-size: 17px; font-weight: 800; color: #121317; }
+    .title-sub { font-size: 14px; color: var(--muted); }
+
+    .pill {
+      align-self: center;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, rgba(115,64,255,.12), rgba(255,62,165,.12));
+      color: #4b30bc;
+      white-space: nowrap;
+    }
+
+    .card-option { padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+    .card-title { font-size: 16px; font-weight: 800; color: #11131a; }
+    .card-sub { font-size: 14px; color: var(--muted); line-height: 1.4; }
+
+    .streaming-badge {
+      padding: 14px 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #121317;
+    }
+
+    .device-card {
+      padding: 16px 10px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 800;
+      color: #13151c;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      min-height: 86px;
+    }
+
+    .device-icon { font-size: 24px; }
+
+    .chip-wrap { display: flex; flex-wrap: wrap; gap: 10px; }
+    .chip, .choice-pill {
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 800;
+      color: #181a22;
+    }
+
+    .choice-pill { text-align: center; }
+
+    .slider-wrap {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid rgba(17,17,17,.08);
+    }
+
+    .slider-value {
+      font-size: 36px;
+      font-weight: 800;
+      color: #101219;
+      margin-bottom: 14px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #7340ff;
+      cursor: pointer;
+    }
+
+    .scale-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .textarea-card {
+      padding: 18px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.86);
+      border: 1px solid rgba(17,17,17,.08);
+    }
+
+    textarea {
+      min-height: 140px;
+      resize: none;
+      line-height: 1.5;
+      font-size: 16px;
+    }
+
+    .helper {
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .progress {
+      display: flex;
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .dot {
+      height: 6px;
+      flex: 1;
+      border-radius: 999px;
+      background: rgba(17,17,17,.08);
+    }
+
+    .dot.active { background: var(--gradient); }
+
+    .back-link {
+      background: none;
+      border: none;
+      color: #5d5d67;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0;
+      margin-bottom: 10px;
+      align-self: flex-start;
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      font-size: 13px;
+      color: #888b94;
+      text-align: center;
+    }
+
+    .success-badge {
+      width: 88px;
+      height: 88px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      font-size: 38px;
+      background: linear-gradient(135deg, rgba(115,64,255,.18), rgba(63,124,255,.16), rgba(255,62,165,.16));
+      border: 1px solid rgba(115,64,255,.14);
+    }
+
+    .center-block {
+      margin-top: auto;
+      margin-bottom: auto;
+      text-align: center;
+      padding: 0 6px;
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .phone-shell { width: 100%; padding: 0; border-radius: 0; }
+      .phone { height: 100vh; max-height: 100vh; border-radius: 0; }
+      .dynamic-island { top: 10px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="phone-shell">
+    <div class="phone">
+      <div class="dynamic-island"></div>
+
+      <!-- 1 Landing -->
+      <section class="screen active" id="landing">
+        <div class="topbar">
+          <span>PopViewers</span>
+          <span>Vibes &amp; Views</span>
+        </div>
+
+        <div class="logo-wrap">
+          <img src="logo.png" alt="PopViewers logo" class="logo" />
+        </div>
+
+        <div class="section glass-card hero">
+          <div class="eyebrow">Audience Intelligence</div>
+          <h1>Join the Vibes &amp; Views experience.</h1>
+          <p>
+            Scan in, share your perspective, and help shape what gets watched,
+            talked about, and greenlit next.
+          </p>
+          <div class="button-row">
+            <button class="button primary" onclick="nextScreen('signup')">Join Now</button>
+            <button class="button secondary" onclick="nextScreen('signup')">Preview Flow</button>
+          </div>
+          <div class="progress">
+            <div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          </div>
+        </div>
+
+        <div class="subtle-note">
+          Designed as a fast, event-first experience: quick signup before the screening, richer feedback after the screening.
+        </div>
+      </section>
+
+      <!-- 2 Signup -->
+      <section class="screen" id="signup">
+        <div class="topbar">
+          <span>Step 1 of 8</span>
+          <span>Join the List</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('landing')">← Back</button>
+        <h2>Join Vibes &amp; Views</h2>
+        <p>Start with a quick check-in so PopViewers can keep you in the loop on future screenings and drops.</p>
+
+        <div class="section stack">
+          <div class="input-box"><input type="text" placeholder="First name" /></div>
+          <div class="input-box"><input type="text" placeholder="Last name" /></div>
+          <div class="input-box"><input type="email" placeholder="Email address" /></div>
+          <div class="input-box"><input type="text" placeholder="Instagram handle (optional)" /></div>
+          <div class="input-box"><input type="tel" placeholder="Phone number (optional)" /></div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('discover')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 3 Discovery -->
+      <section class="screen" id="discover">
+        <div class="topbar">
+          <span>Step 2 of 8</span>
+          <span>Discovery Style</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('signup')">← Back</button>
+        <h2>How do you usually decide what to watch?</h2>
+        <p>Pick the sources that influence you most.</p>
+
+        <div class="section stack" id="discoverOptions">
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">📱 Social media</div>
+            <div class="card-sub">TikTok, Instagram, Twitter, YouTube, and creators I follow.</div>
+          </div>
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">👥 Friends &amp; family</div>
+            <div class="card-sub">Recommendations from people I trust.</div>
+          </div>
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">🎬 Streaming homepages</div>
+            <div class="card-sub">What’s featured when I open Netflix, Hulu, or another app.</div>
+          </div>
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">📰 Reviews &amp; critics</div>
+            <div class="card-sub">Scores, articles, lists, and review coverage.</div>
+          </div>
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">🌟 Cast / talent</div>
+            <div class="card-sub">A specific actor, creator, director, or host pulls me in.</div>
+          </div>
+          <div class="card-option" onclick="toggleSelect(this)">
+            <div class="card-title">🎟️ Live events</div>
+            <div class="card-sub">Screenings, tastemakers, hosts, and curated experiences.</div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('subscriptions')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 4 Subscriptions -->
+      <section class="screen" id="subscriptions">
+        <div class="topbar">
+          <span>Step 3 of 8</span>
+          <span>Platforms</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('discover')">← Back</button>
+        <h2>Which platforms do you use most?</h2>
+        <p>Select all that apply.</p>
+
+        <div class="section grid-3" id="platformGrid">
+          <div class="streaming-badge" onclick="toggleSelect(this)">Netflix</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Hulu</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Prime Video</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Disney+</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Max</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Apple TV+</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Paramount+</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Peacock</div>
+          <div class="streaming-badge" onclick="toggleSelect(this)">Audible</div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('profile')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 5 Profile -->
+      <section class="screen" id="profile">
+        <div class="topbar">
+          <span>Step 4 of 8</span>
+          <span>Audience Profile</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('subscriptions')">← Back</button>
+        <h2>Tell us a little about your viewing style.</h2>
+        <p>This helps PopViewers understand audience patterns, not just opinions.</p>
+
+        <div class="section">
+          <div class="mini-label">Age range</div>
+          <div class="grid-2">
+            <div class="choice-pill" onclick="singleSelect(this, 'ageGroup')">18–24</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'ageGroup')">25–34</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'ageGroup')">35–44</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'ageGroup')">45+</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">How many hours do you watch or listen each week?</div>
+          <div class="chip-wrap">
+            <div class="chip" onclick="singleSelect(this, 'hoursPerWeek')">Less than 5</div>
+            <div class="chip" onclick="singleSelect(this, 'hoursPerWeek')">5–10</div>
+            <div class="chip" onclick="singleSelect(this, 'hoursPerWeek')">10–20</div>
+            <div class="chip" onclick="singleSelect(this, 'hoursPerWeek')">20+</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">Where do you usually watch or listen?</div>
+          <div class="grid-3">
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">📺</div><div>TV</div></div>
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">💻</div><div>Laptop</div></div>
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">📱</div><div>Phone</div></div>
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">📲</div><div>Tablet</div></div>
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">🚗</div><div>In transit</div></div>
+            <div class="device-card" onclick="toggleSelect(this)"><div class="device-icon">🎧</div><div>Audio-first</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">What genres pull you in?</div>
+          <div class="chip-wrap">
+            <div class="chip" onclick="toggleSelect(this)">Drama</div>
+            <div class="chip" onclick="toggleSelect(this)">Comedy</div>
+            <div class="chip" onclick="toggleSelect(this)">Thriller</div>
+            <div class="chip" onclick="toggleSelect(this)">Romance</div>
+            <div class="chip" onclick="toggleSelect(this)">Action</div>
+            <div class="chip" onclick="toggleSelect(this)">Sci‑Fi</div>
+            <div class="chip" onclick="toggleSelect(this)">Docuseries</div>
+            <div class="chip" onclick="toggleSelect(this)">Reality</div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('title')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 6 Title -->
+      <section class="screen" id="title">
+        <div class="topbar">
+          <span>Step 5 of 8</span>
+          <span>Event Title</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('profile')">← Back</button>
+        <h2>What did you just experience?</h2>
+        <p>Select the title or event experience you’re responding to.</p>
+
+        <div class="section glass-card" style="padding:18px;">
+          <div class="search-box">
+            <span>🔎</span>
+            <input type="text" placeholder="Search title or event" />
+          </div>
+          <div class="stack" style="margin-top:16px;">
+            <div class="title-option" onclick="selectTitle(this, 'Vibes & Views Premiere Screening')">
+              <div class="title-meta">
+                <div class="title-name">Vibes &amp; Views Premiere Screening</div>
+                <div class="title-sub">Hosted event · Audience feedback session</div>
+              </div>
+              <div class="pill">Tonight</div>
+            </div>
+            <div class="title-option" onclick="selectTitle(this, 'Featured Film Experience')">
+              <div class="title-meta">
+                <div class="title-name">Featured Film Experience</div>
+                <div class="title-sub">Special screening · curated audience</div>
+              </div>
+              <div class="pill">Curated</div>
+            </div>
+            <div class="title-option" onclick="selectTitle(this, 'New Series Pilot Preview')">
+              <div class="title-meta">
+                <div class="title-name">New Series Pilot Preview</div>
+                <div class="title-sub">Early-access audience preview</div>
+              </div>
+              <div class="pill">Preview</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('buzz')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 7 Buzz -->
+      <section class="screen" id="buzz">
+        <div class="topbar">
+          <span>Step 6 of 8</span>
+          <span>Reaction Signal</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('title')">← Back</button>
+        <h2>How excited are you about this title?</h2>
+        <p>Give us your immediate reaction while it’s fresh.</p>
+
+        <div class="section slider-wrap">
+          <div class="mini-label">Selected title</div>
+          <p id="selectedTitle" style="font-weight:800;color:#11131a; margin-bottom:14px;">Vibes &amp; Views Premiere Screening</p>
+          <div class="slider-value"><span id="buzzValue">8</span>/10</div>
+          <input type="range" min="1" max="10" value="8" id="buzzSlider" oninput="updateBuzz(this.value)" />
+          <div class="scale-row">
+            <span>Low buzz</span>
+            <span>Can’t wait</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">Would you recommend it?</div>
+          <div class="stack">
+            <div class="card-option" onclick="singleSelect(this, 'recommendGroup')"><div class="card-title">👍 Yes</div><div class="card-sub">I’d actively tell other people to check it out.</div></div>
+            <div class="card-option" onclick="singleSelect(this, 'recommendGroup')"><div class="card-title">🤔 Not sure</div><div class="card-sub">I’m interested, but I’d need a little more.</div></div>
+            <div class="card-option" onclick="singleSelect(this, 'recommendGroup')"><div class="card-title">👎 No</div><div class="card-sub">It didn’t land strongly enough for me to recommend.</div></div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('standout')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 8 Standout -->
+      <section class="screen" id="standout">
+        <div class="topbar">
+          <span>Step 7 of 8</span>
+          <span>What Landed</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('buzz')">← Back</button>
+        <h2>What stood out most?</h2>
+        <p>Select the elements that had the biggest impact.</p>
+
+        <div class="section chip-wrap">
+          <div class="chip" onclick="toggleSelect(this)">Story</div>
+          <div class="chip" onclick="toggleSelect(this)">Acting</div>
+          <div class="chip" onclick="toggleSelect(this)">Characters</div>
+          <div class="chip" onclick="toggleSelect(this)">Ending</div>
+          <div class="chip" onclick="toggleSelect(this)">Visuals</div>
+          <div class="chip" onclick="toggleSelect(this)">Humor</div>
+          <div class="chip" onclick="toggleSelect(this)">Action</div>
+          <div class="chip" onclick="toggleSelect(this)">Emotional impact</div>
+          <div class="chip" onclick="toggleSelect(this)">Surprise factor</div>
+          <div class="chip" onclick="toggleSelect(this)">Music / sound</div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">Whose involvement excites you most?</div>
+          <div class="grid-2">
+            <div class="choice-pill" onclick="singleSelect(this, 'talentGroup')">Lead actor</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'talentGroup')">Creator / showrunner</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'talentGroup')">Director</div>
+            <div class="choice-pill" onclick="singleSelect(this, 'talentGroup')">Host / curator</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="mini-label">How likely are you to post about it?</div>
+          <div class="stack">
+            <div class="card-option" onclick="singleSelect(this, 'socialShare')"><div class="card-title">Very likely</div><div class="card-sub">I’d share it or talk about it on social.</div></div>
+            <div class="card-option" onclick="singleSelect(this, 'socialShare')"><div class="card-title">Somewhat likely</div><div class="card-sub">I might post, depending on context.</div></div>
+            <div class="card-option" onclick="singleSelect(this, 'socialShare')"><div class="card-title">Not likely</div><div class="card-sub">I’d keep it private or only mention it in conversation.</div></div>
+          </div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('reaction')">Continue</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot"></div>
+        </div>
+      </section>
+
+      <!-- 9 Reaction -->
+      <section class="screen" id="reaction">
+        <div class="topbar">
+          <span>Step 8 of 8</span>
+          <span>Final Take</span>
+        </div>
+        <button class="back-link" onclick="nextScreen('standout')">← Back</button>
+        <h2>Give us your final take.</h2>
+        <p>Short, memorable, and honest.</p>
+
+        <div class="section textarea-card">
+          <div class="mini-label">One word to describe it</div>
+          <div class="input-box"><input type="text" placeholder="ex: electric, fresh, addictive" /></div>
+        </div>
+
+        <div class="section textarea-card">
+          <div class="mini-label">Anything else we should know?</div>
+          <textarea placeholder="Share a final thought about what worked, what didn’t, or what made the experience memorable."></textarea>
+          <div class="helper">Optional — this is where the most quotable audience insight often shows up.</div>
+        </div>
+
+        <div class="nav-row">
+          <button class="button primary" onclick="nextScreen('thankyou')">Submit</button>
+        </div>
+
+        <div class="progress">
+          <div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div><div class="dot active"></div>
+        </div>
+      </section>
+
+      <!-- 10 Thank you -->
+      <section class="screen" id="thankyou">
+        <div class="topbar">
+          <span>Complete</span>
+          <span>PopViewers</span>
+        </div>
+
+        <div class="center-block">
+          <div class="success-badge">✓</div>
+          <h2>You’re in.</h2>
+          <p>
+            Thanks for joining Vibes &amp; Views. Your feedback helps PopViewers capture real audience signal — not just passive consumption.
+          </p>
+          <div class="button-row" style="justify-content:center;">
+            <button class="button primary" onclick="nextScreen('landing')">Start Over</button>
+          </div>
+          <div class="footer-note">Early concept prototype for PopViewers · event-based audience intelligence flow</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    function nextScreen(id) {
+      document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function toggleSelect(el) {
+      el.classList.toggle('selected');
+    }
+
+    function singleSelect(el, groupName) {
+      const container = el.parentElement;
+      Array.from(container.children).forEach(item => item.classList.remove('selected'));
+      el.classList.add('selected');
+      if (groupName) el.dataset.group = groupName;
+    }
+
+    function selectTitle(el, title) {
+      document.querySelectorAll('.title-option').forEach(item => item.classList.remove('selected'));
+      el.classList.add('selected');
+      const selectedTitle = document.getElementById('selectedTitle');
+      if (selectedTitle) selectedTitle.textContent = title;
+    }
+
+    function updateBuzz(value) {
+      document.getElementById('buzzValue').textContent = value;
+    }
+  </script>
+</body>
+</html>
