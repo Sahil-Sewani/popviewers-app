@@ -21,23 +21,22 @@ function App() {
     title_id: 1,
     buzz_score: 8,
     recommend: "",
+    standout_elements: [],
+    talent_interest: "",
+    social_share: "",
+    one_word: "",
+    comments: "",
   });
 
   function updateField(field, value) {
-    setFormData({
-      ...formData,
-      [field]: value,
-    });
+    setFormData({ ...formData, [field]: value });
   }
 
   function toggleArrayField(field, value) {
     const currentValues = formData[field];
 
     if (currentValues.includes(value)) {
-      updateField(
-        field,
-        currentValues.filter((item) => item !== value)
-      );
+      updateField(field, currentValues.filter((item) => item !== value));
     } else {
       updateField(field, [...currentValues, value]);
     }
@@ -124,50 +123,22 @@ function App() {
               </p>
 
               <div className="section stack">
-                <div className="input-box">
-                  <input
-                    type="text"
-                    placeholder="First name"
-                    value={formData.first_name}
-                    onChange={(e) => updateField("first_name", e.target.value)}
-                  />
-                </div>
-
-                <div className="input-box">
-                  <input
-                    type="text"
-                    placeholder="Last name"
-                    value={formData.last_name}
-                    onChange={(e) => updateField("last_name", e.target.value)}
-                  />
-                </div>
-
-                <div className="input-box">
-                  <input
-                    type="email"
-                    placeholder="Email address"
-                    value={formData.email}
-                    onChange={(e) => updateField("email", e.target.value)}
-                  />
-                </div>
-
-                <div className="input-box">
-                  <input
-                    type="text"
-                    placeholder="Instagram handle (optional)"
-                    value={formData.instagram}
-                    onChange={(e) => updateField("instagram", e.target.value)}
-                  />
-                </div>
-
-                <div className="input-box">
-                  <input
-                    type="tel"
-                    placeholder="Phone number (optional)"
-                    value={formData.phone}
-                    onChange={(e) => updateField("phone", e.target.value)}
-                  />
-                </div>
+                {[
+                  ["first_name", "First name", "text"],
+                  ["last_name", "Last name", "text"],
+                  ["email", "Email address", "email"],
+                  ["instagram", "Instagram handle (optional)", "text"],
+                  ["phone", "Phone number (optional)", "tel"],
+                ].map(([field, placeholder, type]) => (
+                  <div className="input-box" key={field}>
+                    <input
+                      type={type}
+                      placeholder={placeholder}
+                      value={formData[field]}
+                      onChange={(e) => updateField(field, e.target.value)}
+                    />
+                  </div>
+                ))}
               </div>
 
               <div className="nav-row">
@@ -193,7 +164,12 @@ function App() {
               <p>Pick the sources that influence you most.</p>
 
               <div className="section stack">
-                {["Social media", "Friends & family", "Streaming homepages", "Reviews & critics"].map((item) => (
+                {[
+                  "Social media",
+                  "Friends & family",
+                  "Streaming homepages",
+                  "Reviews & critics",
+                ].map((item) => (
                   <div
                     key={item}
                     className={`card-option ${
@@ -280,7 +256,9 @@ function App() {
                   {["18–24", "25–34", "35–44", "45+"].map((item) => (
                     <div
                       key={item}
-                      className={`choice-pill ${formData.age_group === item ? "selected" : ""}`}
+                      className={`choice-pill ${
+                        formData.age_group === item ? "selected" : ""
+                      }`}
                       onClick={() => updateField("age_group", item)}
                     >
                       {item}
@@ -295,7 +273,9 @@ function App() {
                   {["Less than 5", "5–10", "10–20", "20+"].map((item) => (
                     <div
                       key={item}
-                      className={`chip ${formData.hours_per_week === item ? "selected" : ""}`}
+                      className={`chip ${
+                        formData.hours_per_week === item ? "selected" : ""
+                      }`}
                       onClick={() => updateField("hours_per_week", item)}
                     >
                       {item}
@@ -307,25 +287,40 @@ function App() {
               <div className="section">
                 <div className="mini-label">Where do you usually watch or listen?</div>
                 <div className="grid-3">
-                  {["TV", "Laptop", "Phone", "Tablet", "In transit", "Audio-first"].map((item) => (
-                    <div
-                      key={item}
-                      className={`device-card ${formData.devices.includes(item) ? "selected" : ""}`}
-                      onClick={() => toggleArrayField("devices", item)}
-                    >
-                      {item}
-                    </div>
-                  ))}
+                  {["TV", "Laptop", "Phone", "Tablet", "In transit", "Audio-first"].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className={`device-card ${
+                          formData.devices.includes(item) ? "selected" : ""
+                        }`}
+                        onClick={() => toggleArrayField("devices", item)}
+                      >
+                        {item}
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
 
               <div className="section">
                 <div className="mini-label">What genres pull you in?</div>
                 <div className="chip-wrap">
-                  {["Drama", "Comedy", "Thriller", "Romance", "Action", "Sci-Fi", "Docuseries", "Reality"].map((item) => (
+                  {[
+                    "Drama",
+                    "Comedy",
+                    "Thriller",
+                    "Romance",
+                    "Action",
+                    "Sci-Fi",
+                    "Docuseries",
+                    "Reality",
+                  ].map((item) => (
                     <div
                       key={item}
-                      className={`chip ${formData.genres.includes(item) ? "selected" : ""}`}
+                      className={`chip ${
+                        formData.genres.includes(item) ? "selected" : ""
+                      }`}
                       onClick={() => toggleArrayField("genres", item)}
                     >
                       {item}
@@ -360,7 +355,9 @@ function App() {
                 {titles.map((title) => (
                   <div
                     key={title.id}
-                    className={`title-option ${formData.title_id === title.id ? "selected" : ""}`}
+                    className={`title-option ${
+                      formData.title_id === title.id ? "selected" : ""
+                    }`}
                     onClick={() =>
                       setFormData({
                         ...formData,
@@ -402,7 +399,6 @@ function App() {
 
               <div className="section slider-wrap">
                 <div className="mini-label">Buzz Score</div>
-
                 <div className="slider-value">{formData.buzz_score}/10</div>
 
                 <input
@@ -421,12 +417,13 @@ function App() {
 
               <div className="section">
                 <div className="mini-label">Would you recommend it?</div>
-
                 <div className="stack">
                   {["Yes", "Not sure", "No"].map((item) => (
                     <div
                       key={item}
-                      className={`card-option ${formData.recommend === item ? "selected" : ""}`}
+                      className={`card-option ${
+                        formData.recommend === item ? "selected" : ""
+                      }`}
                       onClick={() => updateField("recommend", item)}
                     >
                       {item}
@@ -436,7 +433,135 @@ function App() {
               </div>
 
               <div className="nav-row">
-                <button className="button primary">Continue</button>
+                <button className="button primary" onClick={() => setScreen("standout")}>
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {screen === "standout" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>Step 7 of 8</span>
+                <span>What Landed</span>
+              </div>
+
+              <button className="back-link" onClick={() => setScreen("buzz")}>
+                ← Back
+              </button>
+
+              <h2>What stood out most?</h2>
+              <p>Select the elements that had the biggest impact.</p>
+
+              <div className="section chip-wrap">
+                {[
+                  "Story",
+                  "Acting",
+                  "Characters",
+                  "Ending",
+                  "Visuals",
+                  "Humor",
+                  "Action",
+                  "Emotional impact",
+                  "Music / sound",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className={`chip ${
+                      formData.standout_elements.includes(item) ? "selected" : ""
+                    }`}
+                    onClick={() => toggleArrayField("standout_elements", item)}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="section">
+                <div className="mini-label">Whose involvement excites you most?</div>
+                <div className="grid-2">
+                  {["Lead actor", "Creator / showrunner", "Director", "Host / curator"].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className={`choice-pill ${
+                          formData.talent_interest === item ? "selected" : ""
+                        }`}
+                        onClick={() => updateField("talent_interest", item)}
+                      >
+                        {item}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="mini-label">How likely are you to post about it?</div>
+                <div className="stack">
+                  {["Very likely", "Somewhat likely", "Not likely"].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${
+                        formData.social_share === item ? "selected" : ""
+                      }`}
+                      onClick={() => updateField("social_share", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="nav-row">
+                <button className="button primary" onClick={() => setScreen("final")}>
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {screen === "final" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>Step 8 of 8</span>
+                <span>Final Take</span>
+              </div>
+
+              <button className="back-link" onClick={() => setScreen("standout")}>
+                ← Back
+              </button>
+
+              <h2>Give us your final take.</h2>
+              <p>Short, memorable, and honest.</p>
+
+              <div className="section textarea-card">
+                <div className="mini-label">One word to describe it</div>
+                <div className="input-box">
+                  <input
+                    type="text"
+                    placeholder="ex: electric, fresh, addictive"
+                    value={formData.one_word}
+                    onChange={(e) => updateField("one_word", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="section textarea-card">
+                <div className="mini-label">Anything else we should know?</div>
+                <textarea
+                  placeholder="Share a final thought about what worked, what didn’t, or what made the experience memorable."
+                  value={formData.comments}
+                  onChange={(e) => updateField("comments", e.target.value)}
+                />
+                <div className="helper">
+                  Optional — this is where the most quotable audience insight often shows up.
+                </div>
+              </div>
+
+              <div className="nav-row">
+                <button className="button primary">Submit Feedback</button>
               </div>
             </section>
           )}

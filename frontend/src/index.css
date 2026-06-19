@@ -481,3 +481,34 @@ input[type="range"] {
   font-size: 13px;
   font-weight: 700;
 }
+
+.textarea-card {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+textarea {
+  width: 100%;
+  min-height: 140px;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  line-height: 1.5;
+  font-size: 16px;
+  color: #111;
+  font-family: inherit;
+}
+
+textarea::placeholder {
+  color: #9a9aa1;
+}
+
+.helper {
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
