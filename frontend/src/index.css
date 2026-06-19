@@ -407,3 +407,48 @@ input::placeholder {
   align-items: center;
   justify-content: center;
 }
+
+.title-option {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  background: rgba(255, 255, 255, 0.84);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.title-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  text-align: left;
+}
+
+.title-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #121317;
+}
+
+.title-sub {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.pill {
+  align-self: center;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(115, 64, 255, 0.12),
+    rgba(255, 62, 165, 0.12)
+  );
+  color: #4b30bc;
+  white-space: nowrap;
+}

@@ -17,6 +17,8 @@ function App() {
     hours_per_week: "",
     devices: [],
     genres: [],
+    selected_title: "",
+    title_id: 1,
   });
 
   function updateField(field, value) {
@@ -38,6 +40,27 @@ function App() {
       updateField(field, [...currentValues, value]);
     }
   }
+
+  const titles = [
+    {
+      id: 1,
+      name: "Vibes & Views Premiere Screening",
+      subtitle: "Hosted event · Audience feedback session",
+      tag: "Tonight",
+    },
+    {
+      id: 2,
+      name: "Featured Film Experience",
+      subtitle: "Special screening · curated audience",
+      tag: "Curated",
+    },
+    {
+      id: 3,
+      name: "New Series Pilot Preview",
+      subtitle: "Early-access audience preview",
+      tag: "Preview",
+    },
+  ];
 
   return (
     <div className="app-bg">
@@ -331,6 +354,52 @@ function App() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div className="nav-row">
+                <button className="button primary" onClick={() => setScreen("title")}>
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {screen === "title" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>Step 5 of 8</span>
+                <span>Event Title</span>
+              </div>
+
+              <button className="back-link" onClick={() => setScreen("profile")}>
+                ← Back
+              </button>
+
+              <h2>What did you just experience?</h2>
+              <p>Select the title or event experience you’re responding to.</p>
+
+              <div className="section stack">
+                {titles.map((title) => (
+                  <div
+                    key={title.id}
+                    className={`title-option ${
+                      formData.title_id === title.id ? "selected" : ""
+                    }`}
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        title_id: title.id,
+                        selected_title: title.name,
+                      })
+                    }
+                  >
+                    <div className="title-meta">
+                      <div className="title-name">{title.name}</div>
+                      <div className="title-sub">{title.subtitle}</div>
+                    </div>
+                    <div className="pill">{title.tag}</div>
+                  </div>
+                ))}
               </div>
 
               <div className="nav-row">
