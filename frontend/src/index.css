@@ -354,3 +354,56 @@ input::placeholder {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.mini-label {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #7b7b84;
+  margin-bottom: 10px;
+}
+
+.choice-pill,
+.chip,
+.device-card {
+  border-radius: 18px;
+  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: rgba(255, 255, 255, 0.84);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 800;
+  color: #181a22;
+}
+
+.choice-pill {
+  padding: 14px;
+  text-align: center;
+}
+
+.chip-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.device-card {
+  padding: 16px 10px;
+  text-align: center;
+  font-size: 14px;
+  min-height: 74px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
