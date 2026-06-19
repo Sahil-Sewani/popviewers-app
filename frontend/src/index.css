@@ -452,3 +452,32 @@ input::placeholder {
   color: #4b30bc;
   white-space: nowrap;
 }
+
+.slider-wrap {
+  padding: 18px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.slider-value {
+  font-size: 36px;
+  font-weight: 800;
+  color: #101219;
+  margin-bottom: 14px;
+}
+
+input[type="range"] {
+  width: 100%;
+  accent-color: #7340ff;
+  cursor: pointer;
+}
+
+.scale-row {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}

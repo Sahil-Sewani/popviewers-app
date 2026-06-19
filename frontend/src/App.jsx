@@ -19,6 +19,8 @@ function App() {
     genres: [],
     selected_title: "",
     title_id: 1,
+    buzz_score: 8,
+    recommend: "",
   });
 
   function updateField(field, value) {
@@ -191,12 +193,7 @@ function App() {
               <p>Pick the sources that influence you most.</p>
 
               <div className="section stack">
-                {[
-                  "Social media",
-                  "Friends & family",
-                  "Streaming homepages",
-                  "Reviews & critics",
-                ].map((item) => (
+                {["Social media", "Friends & family", "Streaming homepages", "Reviews & critics"].map((item) => (
                   <div
                     key={item}
                     className={`card-option ${
@@ -283,9 +280,7 @@ function App() {
                   {["18–24", "25–34", "35–44", "45+"].map((item) => (
                     <div
                       key={item}
-                      className={`choice-pill ${
-                        formData.age_group === item ? "selected" : ""
-                      }`}
+                      className={`choice-pill ${formData.age_group === item ? "selected" : ""}`}
                       onClick={() => updateField("age_group", item)}
                     >
                       {item}
@@ -300,9 +295,7 @@ function App() {
                   {["Less than 5", "5–10", "10–20", "20+"].map((item) => (
                     <div
                       key={item}
-                      className={`chip ${
-                        formData.hours_per_week === item ? "selected" : ""
-                      }`}
+                      className={`chip ${formData.hours_per_week === item ? "selected" : ""}`}
                       onClick={() => updateField("hours_per_week", item)}
                     >
                       {item}
@@ -314,40 +307,25 @@ function App() {
               <div className="section">
                 <div className="mini-label">Where do you usually watch or listen?</div>
                 <div className="grid-3">
-                  {["TV", "Laptop", "Phone", "Tablet", "In transit", "Audio-first"].map(
-                    (item) => (
-                      <div
-                        key={item}
-                        className={`device-card ${
-                          formData.devices.includes(item) ? "selected" : ""
-                        }`}
-                        onClick={() => toggleArrayField("devices", item)}
-                      >
-                        {item}
-                      </div>
-                    )
-                  )}
+                  {["TV", "Laptop", "Phone", "Tablet", "In transit", "Audio-first"].map((item) => (
+                    <div
+                      key={item}
+                      className={`device-card ${formData.devices.includes(item) ? "selected" : ""}`}
+                      onClick={() => toggleArrayField("devices", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
                 </div>
               </div>
 
               <div className="section">
                 <div className="mini-label">What genres pull you in?</div>
                 <div className="chip-wrap">
-                  {[
-                    "Drama",
-                    "Comedy",
-                    "Thriller",
-                    "Romance",
-                    "Action",
-                    "Sci-Fi",
-                    "Docuseries",
-                    "Reality",
-                  ].map((item) => (
+                  {["Drama", "Comedy", "Thriller", "Romance", "Action", "Sci-Fi", "Docuseries", "Reality"].map((item) => (
                     <div
                       key={item}
-                      className={`chip ${
-                        formData.genres.includes(item) ? "selected" : ""
-                      }`}
+                      className={`chip ${formData.genres.includes(item) ? "selected" : ""}`}
                       onClick={() => toggleArrayField("genres", item)}
                     >
                       {item}
@@ -382,9 +360,7 @@ function App() {
                 {titles.map((title) => (
                   <div
                     key={title.id}
-                    className={`title-option ${
-                      formData.title_id === title.id ? "selected" : ""
-                    }`}
+                    className={`title-option ${formData.title_id === title.id ? "selected" : ""}`}
                     onClick={() =>
                       setFormData({
                         ...formData,
@@ -400,6 +376,63 @@ function App() {
                     <div className="pill">{title.tag}</div>
                   </div>
                 ))}
+              </div>
+
+              <div className="nav-row">
+                <button className="button primary" onClick={() => setScreen("buzz")}>
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {screen === "buzz" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>Step 6 of 8</span>
+                <span>Reaction Signal</span>
+              </div>
+
+              <button className="back-link" onClick={() => setScreen("title")}>
+                ← Back
+              </button>
+
+              <h2>How excited are you about this title?</h2>
+              <p>Give us your immediate reaction while it’s fresh.</p>
+
+              <div className="section slider-wrap">
+                <div className="mini-label">Buzz Score</div>
+
+                <div className="slider-value">{formData.buzz_score}/10</div>
+
+                <input
+                  type="range"
+                  min="1"
+                  max="10"
+                  value={formData.buzz_score}
+                  onChange={(e) => updateField("buzz_score", Number(e.target.value))}
+                />
+
+                <div className="scale-row">
+                  <span>Low buzz</span>
+                  <span>Can’t wait</span>
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="mini-label">Would you recommend it?</div>
+
+                <div className="stack">
+                  {["Yes", "Not sure", "No"].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${formData.recommend === item ? "selected" : ""}`}
+                      onClick={() => updateField("recommend", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div className="nav-row">
