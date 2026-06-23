@@ -4,10 +4,10 @@ import logo from "./assets/logo.png";
 
 function App() {
   const [screen, setScreen] = useState("landing");
+  const [responses, setResponses] = useState([]);
 
   const [formData, setFormData] = useState({
     campaign_id: 1,
- 
     first_name: "",
     last_name: "",
     email: "",
@@ -44,35 +44,52 @@ function App() {
     }
   }
 
-async function handleSubmit() {
-  const payload = {
-    ...formData,
-    discovery_sources: formData.discovery_sources.join(", "),
-    platforms: formData.platforms.join(", "),
-    devices: formData.devices.join(", "),
-    genres: formData.genres.join(", "),
-    standout_elements: formData.standout_elements.join(", "),
-  };
+  async function handleSubmit() {
+    const payload = {
+      ...formData,
+      discovery_sources: formData.discovery_sources.join(", "),
+      platforms: formData.platforms.join(", "),
+      devices: formData.devices.join(", "),
+      genres: formData.genres.join(", "),
+      standout_elements: formData.standout_elements.join(", "),
+    };
 
-  try {
-    const response = await fetch("http://127.0.0.1:8000/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const response = await fetch("http://127.0.0.1:8000/responses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    if (!response.ok) {
-      throw new Error("Failed to submit feedback");
+      if (!response.ok) {
+        throw new Error("Failed to submit feedback");
+      }
+
+      setScreen("thankyou");
+    } catch (error) {
+      console.error(error);
+      alert("Unable to submit feedback. Please try again.");
     }
-
-    setScreen("thankyou");
-  } catch (error) {
-    console.error(error);
-    alert("Unable to submit feedback. Please try again.");
   }
-}
+
+  async function loadAdminResponses() {
+    try {
+      const response = await fetch("http://127.0.0.1:8000/responses");
+
+      if (!response.ok) {
+        throw new Error("Failed to load responses");
+      }
+
+      const data = await response.json();
+      setResponses(data);
+      setScreen("admin");
+    } catch (error) {
+      console.error(error);
+      alert("Unable to load admin responses.");
+    }
+  }
 
   const titles = [
     {
@@ -105,7 +122,9 @@ async function handleSubmit() {
             <section className="screen">
               <div className="topbar">
                 <span>PopViewers</span>
-                <span>Vibes & Views</span>
+                <button className="back-link" onClick={loadAdminResponses}>
+                  Admin
+                </button>
               </div>
 
               <div className="logo-wrap">
@@ -124,6 +143,7 @@ async function handleSubmit() {
                   <button className="button primary" onClick={() => setScreen("signup")}>
                     Join Now
                   </button>
+
                   <button className="button secondary" onClick={() => setScreen("signup")}>
                     Preview Flow
                   </button>
@@ -600,7 +620,7 @@ async function handleSubmit() {
             </section>
           )}
 
-                    {screen === "thankyou" && (
+          {screen === "thankyou" && (
             <section className="screen">
               <div className="topbar">
                 <span>PopViewers</span>
@@ -625,6 +645,43 @@ async function handleSubmit() {
                   </button>
                 </div>
               </div>
+            </section>
+          )}
+
+          {screen === "admin" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>PopViewers</span>
+                <span>Admin</span>
+              </div>
+
+              <button className="back-link" onClick={() => setScreen("landing")}>
+                ← Back
+              </button>
+
+              <h2>Responses</h2>
+
+              {responses.map((response) => (
+                <div key={response.id} className="section textarea-card">
+                  <strong>
+                    {response.first_name} {response.last_name}
+                  </strong>
+
+                  <p>{response.email}</p>
+
+                  <p>
+                    <strong>Buzz:</strong> {response.buzz_score}/10
+                  </p>
+
+                  <p>
+                    <strong>One Word:</strong> {response.one_word}
+                  </p>
+
+                  <p>
+                    <strong>Comments:</strong> {response.comments}
+                  </p>
+                </div>
+              ))}
             </section>
           )}
         </div>
