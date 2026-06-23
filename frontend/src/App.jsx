@@ -6,6 +6,8 @@ function App() {
   const [screen, setScreen] = useState("landing");
 
   const [formData, setFormData] = useState({
+    campaign_id: 1,
+ 
     first_name: "",
     last_name: "",
     email: "",
@@ -41,6 +43,36 @@ function App() {
       updateField(field, [...currentValues, value]);
     }
   }
+
+async function handleSubmit() {
+  const payload = {
+    ...formData,
+    discovery_sources: formData.discovery_sources.join(", "),
+    platforms: formData.platforms.join(", "),
+    devices: formData.devices.join(", "),
+    genres: formData.genres.join(", "),
+    standout_elements: formData.standout_elements.join(", "),
+  };
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to submit feedback");
+    }
+
+    setScreen("thankyou");
+  } catch (error) {
+    console.error(error);
+    alert("Unable to submit feedback. Please try again.");
+  }
+}
 
   const titles = [
     {
@@ -561,7 +593,37 @@ function App() {
               </div>
 
               <div className="nav-row">
-                <button className="button primary">Submit Feedback</button>
+                <button className="button primary" onClick={handleSubmit}>
+                  Submit Feedback
+                </button>
+              </div>
+            </section>
+          )}
+
+                    {screen === "thankyou" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>PopViewers</span>
+                <span>Feedback Received</span>
+              </div>
+
+              <div className="section glass-card hero">
+                <div className="eyebrow">Success</div>
+                <h1>Thank You!</h1>
+                <p>
+                  Your feedback has been submitted successfully and will help
+                  shape future screenings, releases, and audience experiences.
+                </p>
+
+                <div className="subtle-note">
+                  We appreciate you taking the time to share your perspective.
+                </div>
+
+                <div className="button-row">
+                  <button className="button primary" onClick={() => setScreen("landing")}>
+                    Finish
+                  </button>
+                </div>
               </div>
             </section>
           )}
