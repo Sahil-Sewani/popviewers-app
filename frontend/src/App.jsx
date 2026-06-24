@@ -661,6 +661,41 @@ function App() {
 
               <h2>Responses</h2>
 
+              <div className="section textarea-card">
+                <div className="mini-label">Admin Summary</div>
+
+                <p>
+                  <strong>Total Responses:</strong> {responses.length}
+                </p>
+
+                <p>
+                  <strong>Average Buzz:</strong>{" "}
+                  {responses.length === 0
+                    ? "N/A"
+                    : (
+                        responses.reduce(
+                          (sum, response) => sum + (response.buzz_score || 0),
+                          0
+                        ) / responses.length
+                      ).toFixed(1)}
+                  /10
+                </p>
+
+                <p>
+                  <strong>Recommend Rate:</strong>{" "}
+                  {responses.length === 0
+                    ? "N/A"
+                    : `${Math.round(
+                        (responses.filter(
+                          (response) =>
+                            (response.recommend || "").toLowerCase() === "yes"
+                        ).length /
+                          responses.length) *
+                          100
+                      )}%`}
+                </p>
+              </div>
+
               {responses.map((response) => (
                 <div key={response.id} className="section textarea-card">
                   <strong>
