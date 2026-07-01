@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "PopViewers production security groups and EC2 IAM role"
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: popviewers
+
+  EnvironmentName:
+    Type: String
+    Default: prod
+
+Resources:
+  AlbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow public HTTP/HTTPS traffic to ALB
+      VpcId:
+        Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-VpcId"
+      SecurityGroupIngress:
+        - Description: HTTP from internet
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - Description: HTTPS from internet
+          IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+        - Description: Allow outbound to backend
+          IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${EnvironmentName}-alb-sg"
+
+  BackendSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow backend traffic only from ALB
+      VpcId:
+        Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-VpcId"
+      SecurityGroupIngress:
+        - Description: HTTP from ALB only
+          IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          SourceSecurityGroupId: !Ref AlbSecurityGroup
+      SecurityGroupEgress:
+        - Description: Allow outbound internet/database access
+          IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${EnvironmentName}-backend-sg"
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow PostgreSQL only from backend EC2
+      VpcId:
+        Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-VpcId"
+      SecurityGroupIngress:
+        - Description: PostgreSQL from backend only
+          IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref BackendSecurityGroup
+      SecurityGroupEgress:
+        - Description: Allow outbound responses
+          IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${EnvironmentName}-database-sg"
+
+  BackendInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-${EnvironmentName}-backend-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+
+  BackendInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Sub "${ProjectName}-${EnvironmentName}-backend-instance-profile"
+      Roles:
+        - !Ref BackendInstanceRole
+
+Outputs:
+  AlbSecurityGroupId:
+    Description: ALB security group ID
+    Value: !Ref AlbSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-AlbSecurityGroupId"
+
+  BackendSecurityGroupId:
+    Description: Backend EC2 security group ID
+    Value: !Ref BackendSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-BackendSecurityGroupId"
+
+  DatabaseSecurityGroupId:
+    Description: RDS PostgreSQL security group ID
+    Value: !Ref DatabaseSecurityGroup
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-DatabaseSecurityGroupId"
+
+  BackendInstanceProfileName:
+    Description: Backend EC2 instance profile name
+    Value: !Ref BackendInstanceProfile
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-BackendInstanceProfileName"
