@@ -91,6 +91,55 @@ function App() {
     }
   }
 
+  function exportResponsesCsv() {
+    const headers = [
+      "id",
+      "first_name",
+      "last_name",
+      "email",
+      "phone",
+      "instagram",
+      "buzz_score",
+      "recommend",
+      "one_word",
+      "comments",
+    ];
+
+    const rows = responses.map((response) => [
+      response.id,
+      response.first_name || "",
+      response.last_name || "",
+      response.email || "",
+      response.phone || "",
+      response.instagram || "",
+      response.buzz_score || "",
+      response.recommend || "",
+      response.one_word || "",
+      response.comments || "",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+          .join(",")
+      )
+      .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+
+    link.href = url;
+    link.download = "popviewers-responses.csv";
+    link.click();
+
+    URL.revokeObjectURL(url);
+  }
+
   const titles = [
     {
       id: 1,
@@ -660,6 +709,16 @@ function App() {
               </button>
 
               <h2>Responses</h2>
+
+              <div className="nav-row">
+                <button
+                  className="button secondary"
+                  onClick={exportResponsesCsv}
+                  disabled={responses.length === 0}
+                >
+                  Export CSV
+                </button>
+              </div>
 
               <div className="section textarea-card">
                 <div className="mini-label">Admin Summary</div>
