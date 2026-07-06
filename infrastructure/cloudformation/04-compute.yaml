@@ -106,6 +106,16 @@ Resources:
             mkdir -p /opt/popviewers/releases
             chown -R ec2-user:ec2-user /opt/popviewers
 
+            cat > /opt/popviewers/deploy.env <<'EOF'
+            ARTIFACT_BUCKET=popviewers-prod-deployments-003107248390
+            AWS_REGION=us-east-1
+            ENVIRONMENT=prod
+            PROJECT_NAME=popviewers
+            EOF
+
+            chown ec2-user:ec2-user /opt/popviewers/deploy.env
+            chmod 600 /opt/popviewers/deploy.env
+
             python3 -m venv /opt/popviewers/venv
             /opt/popviewers/venv/bin/pip install --upgrade pip
             /opt/popviewers/venv/bin/pip install gunicorn uvicorn
