@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "PopViewers production compute layer with ALB, ASG, private EC2, Nginx, and SSM"
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: popviewers
+
+  EnvironmentName:
+    Type: String
+    Default: prod
+
+  InstanceType:
+    Type: String
+    Default: t3.medium
+
+  DesiredCapacity:
+    Type: Number
+    Default: 1
+
+  MinSize:
+    Type: Number
+    Default: 1
+
+  MaxSize:
+    Type: Number
+    Default: 2
+
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
+Resources:
+  BackendTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-backend-tg"
+      VpcId:
+        Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-VpcId"
+      Protocol: HTTP
+      Port: 80
+      TargetType: instance
+      HealthCheckProtocol: HTTP
+      HealthCheckPath: /health
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      UnhealthyThresholdCount: 3
+      Matcher:
+        HttpCode: "200"
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-alb"
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-AlbSecurityGroupId"
+      Subnets:
+        - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-PublicSubnet1Id"
+        - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-PublicSubnet2Id"
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${EnvironmentName}-alb"
+
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Protocol: HTTP
+      Port: 80
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref BackendTargetGroup
+
+  BackendLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateName: !Sub "${ProjectName}-${EnvironmentName}-backend-lt"
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: !Ref InstanceType
+        IamInstanceProfile:
+          Name:
+            Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-BackendInstanceProfileName"
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-BackendSecurityGroupId"
+        MetadataOptions:
+          HttpTokens: required
+          HttpEndpoint: enabled
+        BlockDeviceMappings:
+          - DeviceName: /dev/xvda
+            Ebs:
+              VolumeSize: 30
+              VolumeType: gp3
+              Encrypted: true
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            set -eux
+
+            dnf update -y
+            dnf install -y nginx git python3 python3-pip amazon-cloudwatch-agent
+
+            systemctl enable nginx
+
+            cat > /usr/share/nginx/html/health <<'EOF'
+            ok
+            EOF
+
+            cat > /usr/share/nginx/html/index.html <<'EOF'
+            PopViewers backend server is running.
+            EOF
+
+            systemctl start nginx
+
+            mkdir -p /opt/popviewers
+            chown -R ec2-user:ec2-user /opt/popviewers
+
+            echo "PopViewers backend base server ready" > /opt/popviewers/README.txt
+
+  BackendAutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AutoScalingGroupName: !Sub "${ProjectName}-${EnvironmentName}-backend-asg"
+      VPCZoneIdentifier:
+        - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-PrivateSubnet1Id"
+        - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-PrivateSubnet2Id"
+      MinSize: !Ref MinSize
+      MaxSize: !Ref MaxSize
+      DesiredCapacity: !Ref DesiredCapacity
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      TargetGroupARNs:
+        - !Ref BackendTargetGroup
+      LaunchTemplate:
+        LaunchTemplateId: !Ref BackendLaunchTemplate
+        Version: !GetAtt BackendLaunchTemplate.LatestVersionNumber
+      Tags:
+        - Key: Name
+          Value: !Sub "${ProjectName}-${EnvironmentName}-backend"
+          PropagateAtLaunch: true
+
+Outputs:
+  LoadBalancerDnsName:
+    Description: Public DNS name of the application load balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-LoadBalancerDnsName"
+
+  LoadBalancerArn:
+    Description: Application Load Balancer ARN
+    Value: !Ref ApplicationLoadBalancer
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-LoadBalancerArn"
+
+  BackendTargetGroupArn:
+    Description: Backend target group ARN
+    Value: !Ref BackendTargetGroup
+    Export:
+      Name: !Sub "${ProjectName}-${EnvironmentName}-BackendTargetGroupArn"
