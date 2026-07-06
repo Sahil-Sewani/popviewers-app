@@ -92,6 +92,21 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
         - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: !Sub "${ProjectName}-${EnvironmentName}-backend-app-policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-DatabaseSecretArn"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub "arn:aws:s3:::${ProjectName}-${EnvironmentName}-deploy-artifacts/*"
 
   BackendInstanceProfile:
     Type: AWS::IAM::InstanceProfile
