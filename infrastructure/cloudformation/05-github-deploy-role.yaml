@@ -67,6 +67,7 @@ Resources:
                 Action:
                   - ssm:GetCommandInvocation
                   - ssm:ListCommandInvocations
+                Resource: "*"
               
               - Sid: ReadCloudFormationOutputs
                 Effect: Allow
@@ -74,7 +75,6 @@ Resources:
                   - cloudformation:DescribeStacks
                 Resource:
                   - arn:aws:cloudformation:us-east-1:003107248390:stack/popviewers-compute/*
-                Resource: "*"
 
 Outputs:
   GitHubActionsDeployRoleArn:

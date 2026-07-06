@@ -102,11 +102,20 @@ Resources:
                   - secretsmanager:GetSecretValue
                 Resource:
                   - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-DatabaseSecretArn"
-              - Effect: Allow
+
+              - Sid: ReadDeploymentArtifacts
+                Effect: Allow
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "arn:aws:s3:::${ProjectName}-${EnvironmentName}-deploy-artifacts/*"
+                  - arn:aws:s3:::popviewers-prod-deployments-003107248390/backend/*
+
+              - Sid: ListDeploymentBucket
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::popviewers-prod-deployments-003107248390
 
   BackendInstanceProfile:
     Type: AWS::IAM::InstanceProfile
