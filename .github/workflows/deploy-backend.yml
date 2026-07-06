@@ -1,0 +1,52 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "scripts/deploy-backend.sh"
+      - ".github/workflows/deploy-backend.yml"
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: us-east-1
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+
+      - name: Create backend artifact
+        run: |
+          tar -czf backend.tar.gz backend scripts/deploy-backend.sh
+
+      - name: Upload backend artifact to S3
+        run: |
+          aws s3 cp backend.tar.gz s3://popviewers-prod-deployments-003107248390/backend/latest/backend.tar.gz
+
+      - name: Deploy backend using SSM
+        run: |
+          INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
+            --auto-scaling-group-names popviewers-prod-backend-asg \
+            --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId | [0]" \
+            --output text)
+
+          aws ssm send-command \
+            --instance-ids "$INSTANCE_ID" \
+            --document-name "AWS-RunShellScript" \
+            --comment "Deploy PopViewers backend" \
+            --parameters commands='[
+              "aws s3 cp s3://popviewers-prod-deployments-003107248390/backend/latest/backend.tar.gz /tmp/backend.tar.gz --region us-east-1",
+              "rm -rf /tmp/popviewers-deploy",
+              "mkdir -p /tmp/popviewers-deploy",
+              "tar -xzf /tmp/backend.tar.gz -C /tmp/popviewers-deploy",
+              "chmod +x /tmp/popviewers-deploy/scripts/deploy-backend.sh",
+              "/tmp/popviewers-deploy/scripts/deploy-backend.sh"
+            ]'

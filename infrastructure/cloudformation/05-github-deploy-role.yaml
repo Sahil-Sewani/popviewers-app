@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "GitHub Actions OIDC deploy role for PopViewers production"
+
+Parameters:
+  GitHubOrg:
+    Type: String
+    Default: Sahil-Sewani
+
+  GitHubRepo:
+    Type: String
+    Default: popviewers-app
+
+Resources:
+  GitHubActionsOidcProvider:
+    Type: AWS::IAM::OIDCProvider
+    Properties:
+      Url: https://token.actions.githubusercontent.com
+      ClientIdList:
+        - sts.amazonaws.com
+      ThumbprintList:
+        - 6938fd4d98bab03faadb97b34396831e3780aea1
+
+  GitHubActionsDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: popviewers-prod-github-deploy-role
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: !Ref GitHubActionsOidcProvider
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                token.actions.githubusercontent.com:aud: sts.amazonaws.com
+              StringLike:
+                token.actions.githubusercontent.com:sub: !Sub "repo:${GitHubOrg}/${GitHubRepo}:ref:refs/heads/main"
+      Policies:
+        - PolicyName: popviewers-prod-github-deploy-policy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: UploadBackendArtifact
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - arn:aws:s3:::popviewers-prod-deployments-003107248390/backend/*
+
+              - Sid: ReadAutoScalingGroup
+                Effect: Allow
+                Action:
+                  - autoscaling:DescribeAutoScalingGroups
+                Resource: "*"
+
+              - Sid: RunSSMCommand
+                Effect: Allow
+                Action:
+                  - ssm:SendCommand
+                Resource:
+                  - arn:aws:ec2:us-east-1:003107248390:instance/*
+                  - arn:aws:ssm:us-east-1::document/AWS-RunShellScript
+
+              - Sid: ReadSSMCommandStatus
+                Effect: Allow
+                Action:
+                  - ssm:GetCommandInvocation
+                  - ssm:ListCommandInvocations
+                Resource: "*"
+
+Outputs:
+  GitHubActionsDeployRoleArn:
+    Description: ARN of the GitHub Actions deploy role
+    Value: !GetAtt GitHubActionsDeployRole.Arn
+    Export:
+      Name: popviewers-prod-GitHubActionsDeployRoleArn
