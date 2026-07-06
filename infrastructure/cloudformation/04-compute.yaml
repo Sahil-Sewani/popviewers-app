@@ -118,23 +118,9 @@ Resources:
 
             mkdir -p /etc/popviewers
 
-            DB_SECRET_ARN=$(aws cloudformation describe-stacks \
-              --region us-east-1 \
-              --stack-name popviewers-rds \
-              --query "Stacks[0].Outputs[?OutputKey=='DatabaseSecretArn'].OutputValue" \
-              --output text)
-
-            DB_ENDPOINT=$(aws cloudformation describe-stacks \
-              --region us-east-1 \
-              --stack-name popviewers-rds \
-              --query "Stacks[0].Outputs[?OutputKey=='DatabaseEndpoint'].OutputValue" \
-              --output text)
-
-            DB_NAME=$(aws cloudformation describe-stacks \
-              --region us-east-1 \
-              --stack-name popviewers-rds \
-              --query "Stacks[0].Outputs[?OutputKey=='DatabaseName'].OutputValue" \
-              --output text)
+            DB_SECRET_ARN="arn:aws:secretsmanager:us-east-1:003107248390:secret:popviewers/prod/database-ORk3MD"
+            DB_ENDPOINT="popviewers-prod-postgres.ccrgaw60cc8x.us-east-1.rds.amazonaws.com"
+            DB_NAME="popviewers"
 
             DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
               --region us-east-1 \
@@ -146,7 +132,7 @@ Resources:
             DB_PASSWORD=$(DB_SECRET_JSON="$DB_SECRET_JSON" python3 -c "import json, os; print(json.loads(os.environ['DB_SECRET_JSON'])['password'])")
 
             cat > /etc/popviewers/backend.env <<EOF
-            DATABASE_URL=postgresql+psycopg2://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME}
+            DATABASE_URL=postgresql+psycopg2://${!DB_USERNAME}:${!DB_PASSWORD}@${!DB_ENDPOINT}:5432/${!DB_NAME}
             EOF
 
             chown root:root /etc/popviewers/backend.env
