@@ -30,6 +30,10 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
     Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
 
+  ApiCertificateArn:
+    Type: String
+    Default: arn:aws:acm:us-east-1:003107248390:certificate/b6a75131-0dfa-423d-9bc3-7dad298c74ac
+
 Resources:
   BackendTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup

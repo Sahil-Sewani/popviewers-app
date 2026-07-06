@@ -1,9 +1,7 @@
 import { useState } from "react";
 import "./index.css";
 import logo from "./assets/logo.png";
-
-const API_URL =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
+import { API_URL } from "./config";
 
 function App() {
   const [screen, setScreen] = useState("landing");

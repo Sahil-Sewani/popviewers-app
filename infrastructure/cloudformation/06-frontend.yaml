@@ -35,6 +35,8 @@ Resources:
     Properties:
       DistributionConfig:
         Enabled: true
+        Aliases:
+          - app.popviewers.com
         DefaultRootObject: index.html
         Origins:
           - Id: FrontendS3Origin
@@ -64,6 +66,11 @@ Resources:
             ResponseCode: 200
             ResponsePagePath: /index.html
         PriceClass: PriceClass_100
+
+        ViewerCertificate:
+          AcmCertificateArn: arn:aws:acm:us-east-1:003107248390:certificate/10f30991-4782-43ae-8185-3445dc29168e
+          SslSupportMethod: sni-only
+          MinimumProtocolVersion: TLSv1.2_2021
 
   FrontendBucketPolicy:
     Type: AWS::S3::BucketPolicy
