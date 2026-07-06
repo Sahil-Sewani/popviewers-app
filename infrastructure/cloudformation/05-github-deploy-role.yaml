@@ -76,6 +76,23 @@ Resources:
                 Resource:
                   - arn:aws:cloudformation:us-east-1:003107248390:stack/popviewers-compute/*
 
+              - Sid: DeployFrontendToS3
+                Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:ListBucket
+                Resource:
+                  - arn:aws:s3:::popviewers-prod-frontend-003107248390
+                  - arn:aws:s3:::popviewers-prod-frontend-003107248390/*
+
+              - Sid: InvalidateFrontendCloudFront
+                Effect: Allow
+                Action:
+                  - cloudfront:CreateInvalidation
+                Resource:
+                  - arn:aws:cloudfront::003107248390:distribution/E1EEWHVX0T3KIG
+
 Outputs:
   GitHubActionsDeployRoleArn:
     Description: ARN of the GitHub Actions deploy role
