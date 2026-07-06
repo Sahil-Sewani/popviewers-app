@@ -13,40 +13,128 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
 
+    env:
+      AWS_REGION: us-east-1
+      ARTIFACT_BUCKET: popviewers-prod-deployments-003107248390
+      ASG_NAME: popviewers-prod-backend-asg
+      STACK_NAME: popviewers-compute
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set artifact variables
+        run: |
+          echo "GIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
+          echo "VERSIONED_ARTIFACT_KEY=backend/releases/${GITHUB_SHA}/backend.tar.gz" >> $GITHUB_ENV
+          echo "LATEST_ARTIFACT_KEY=backend/latest/backend.tar.gz" >> $GITHUB_ENV
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Validate backend dependencies
+        run: |
+          python -m venv /tmp/popviewers-venv
+          source /tmp/popviewers-venv/bin/activate
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Validate FastAPI import
+        run: |
+          source /tmp/popviewers-venv/bin/activate
+          cd backend
+          python -c "from app.main import app; print('Backend import successful')"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: us-east-1
+          aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
 
       - name: Create backend artifact
         run: |
           tar -czf backend.tar.gz backend scripts/deploy-backend.sh
 
-      - name: Upload backend artifact to S3
+      - name: Upload versioned backend artifact
         run: |
-          aws s3 cp backend.tar.gz s3://popviewers-prod-deployments-003107248390/backend/latest/backend.tar.gz
+          aws s3 cp backend.tar.gz s3://${ARTIFACT_BUCKET}/${VERSIONED_ARTIFACT_KEY}
 
-      - name: Deploy backend using SSM
+      - name: Upload latest backend artifact
+        run: |
+          aws s3 cp backend.tar.gz s3://${ARTIFACT_BUCKET}/${LATEST_ARTIFACT_KEY}
+
+      - name: Find active backend instance
         run: |
           INSTANCE_ID=$(aws autoscaling describe-auto-scaling-groups \
-            --auto-scaling-group-names popviewers-prod-backend-asg \
+            --auto-scaling-group-names "${ASG_NAME}" \
             --query "AutoScalingGroups[0].Instances[?LifecycleState=='InService'].InstanceId | [0]" \
             --output text)
 
-          aws ssm send-command \
+          if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
+            echo "No active backend instance found"
+            exit 1
+          fi
+
+          echo "INSTANCE_ID=$INSTANCE_ID" >> $GITHUB_ENV
+          echo "Deploying to instance: $INSTANCE_ID"
+
+      - name: Run backend deployment through SSM
+        run: |
+          COMMAND_ID=$(aws ssm send-command \
             --instance-ids "$INSTANCE_ID" \
             --document-name "AWS-RunShellScript" \
-            --comment "Deploy PopViewers backend" \
+            --comment "Deploy PopViewers backend ${GITHUB_SHA}" \
             --parameters commands='[
               "aws s3 cp s3://popviewers-prod-deployments-003107248390/backend/latest/backend.tar.gz /tmp/backend.tar.gz --region us-east-1",
               "rm -rf /tmp/popviewers-deploy",
               "mkdir -p /tmp/popviewers-deploy",
               "tar -xzf /tmp/backend.tar.gz -C /tmp/popviewers-deploy",
               "chmod +x /tmp/popviewers-deploy/scripts/deploy-backend.sh",
-              "/tmp/popviewers-deploy/scripts/deploy-backend.sh"
-            ]'
+              "/tmp/popviewers-deploy/scripts/deploy-backend.sh",
+              "sudo systemctl status popviewers-backend --no-pager",
+              "curl -f http://127.0.0.1:8000/health"
+            ]' \
+            --query "Command.CommandId" \
+            --output text)
+
+          echo "COMMAND_ID=$COMMAND_ID" >> $GITHUB_ENV
+          echo "SSM command ID: $COMMAND_ID"
+
+      - name: Wait for deployment command
+        run: |
+          aws ssm wait command-executed \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID"
+
+      - name: Print deployment logs
+        if: always()
+        run: |
+          aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "{Status:Status,StandardOutputContent:StandardOutputContent,StandardErrorContent:StandardErrorContent}"
+
+      - name: Fail if deployment command failed
+        run: |
+          STATUS=$(aws ssm get-command-invocation \
+            --command-id "$COMMAND_ID" \
+            --instance-id "$INSTANCE_ID" \
+            --query "Status" \
+            --output text)
+
+          if [ "$STATUS" != "Success" ]; then
+            echo "Deployment failed with status: $STATUS"
+            exit 1
+          fi
+
+      - name: Verify ALB health endpoint
+        run: |
+          ALB_DNS=$(aws cloudformation describe-stacks \
+            --stack-name "${STACK_NAME}" \
+            --query "Stacks[0].Outputs[?OutputKey=='LoadBalancerDnsName'].OutputValue" \
+            --output text)
+
+          curl -f "http://${ALB_DNS}/health"
+          echo "ALB health check passed"
