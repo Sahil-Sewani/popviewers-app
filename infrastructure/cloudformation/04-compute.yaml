@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "PopViewers production compute layer with ALB, ASG, private EC2, Nginx, and SSM"
+Description: "PopViewers production compute layer with ALB, ASG, private EC2, Nginx, Gunicorn, SSM, and backend env config"
 
 Parameters:
   ProjectName:
@@ -101,7 +101,7 @@ Resources:
             set -eux
 
             dnf update -y
-            dnf install -y nginx git python3 python3-pip python3-devel gcc postgresql15-devel amazon-cloudwatch-agent
+            dnf install -y nginx git python3 python3-pip python3-devel gcc postgresql15-devel amazon-cloudwatch-agent awscli
 
             mkdir -p /opt/popviewers/releases
             chown -R ec2-user:ec2-user /opt/popviewers
@@ -115,6 +115,42 @@ Resources:
 
             chown ec2-user:ec2-user /opt/popviewers/deploy.env
             chmod 600 /opt/popviewers/deploy.env
+
+            mkdir -p /etc/popviewers
+
+            DB_SECRET_ARN=$(aws cloudformation describe-stacks \
+              --region us-east-1 \
+              --stack-name popviewers-rds \
+              --query "Stacks[0].Outputs[?OutputKey=='DatabaseSecretArn'].OutputValue" \
+              --output text)
+
+            DB_ENDPOINT=$(aws cloudformation describe-stacks \
+              --region us-east-1 \
+              --stack-name popviewers-rds \
+              --query "Stacks[0].Outputs[?OutputKey=='DatabaseEndpoint'].OutputValue" \
+              --output text)
+
+            DB_NAME=$(aws cloudformation describe-stacks \
+              --region us-east-1 \
+              --stack-name popviewers-rds \
+              --query "Stacks[0].Outputs[?OutputKey=='DatabaseName'].OutputValue" \
+              --output text)
+
+            DB_SECRET_JSON=$(aws secretsmanager get-secret-value \
+              --region us-east-1 \
+              --secret-id "$DB_SECRET_ARN" \
+              --query SecretString \
+              --output text)
+
+            DB_USERNAME=$(DB_SECRET_JSON="$DB_SECRET_JSON" python3 -c "import json, os; print(json.loads(os.environ['DB_SECRET_JSON'])['username'])")
+            DB_PASSWORD=$(DB_SECRET_JSON="$DB_SECRET_JSON" python3 -c "import json, os; print(json.loads(os.environ['DB_SECRET_JSON'])['password'])")
+
+            cat > /etc/popviewers/backend.env <<EOF
+            DATABASE_URL=postgresql+psycopg2://${DB_USERNAME}:${DB_PASSWORD}@${DB_ENDPOINT}:5432/${DB_NAME}
+            EOF
+
+            chown root:root /etc/popviewers/backend.env
+            chmod 600 /etc/popviewers/backend.env
 
             python3 -m venv /opt/popviewers/venv
             /opt/popviewers/venv/bin/pip install --upgrade pip
@@ -130,6 +166,7 @@ Resources:
             Group=ec2-user
             WorkingDirectory=/opt/popviewers/current
             Environment="PATH=/opt/popviewers/venv/bin"
+            EnvironmentFile=/etc/popviewers/backend.env
             ExecStart=/opt/popviewers/venv/bin/gunicorn app.main:app \
               -k uvicorn.workers.UvicornWorker \
               --bind 127.0.0.1:8000 \
