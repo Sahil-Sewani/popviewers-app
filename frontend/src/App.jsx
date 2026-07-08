@@ -3,33 +3,35 @@ import "./index.css";
 import logo from "./assets/logo.png";
 import { API_URL } from "./config";
 
+const initialFormData = {
+  campaign_id: 1,
+  first_name: "",
+  last_name: "",
+  email: "",
+  instagram: "",
+  phone: "",
+  discovery_sources: [],
+  platforms: [],
+  age_group: "",
+  hours_per_week: "",
+  devices: [],
+  genres: [],
+  selected_title: "",
+  title_id: 1,
+  buzz_score: 8,
+  recommend: "",
+  standout_elements: [],
+  talent_interest: "",
+  social_share: "",
+  one_word: "",
+  comments: "",
+};
+
 function App() {
   const [screen, setScreen] = useState("landing");
   const [responses, setResponses] = useState([]);
 
-  const [formData, setFormData] = useState({
-    campaign_id: 1,
-    first_name: "",
-    last_name: "",
-    email: "",
-    instagram: "",
-    phone: "",
-    discovery_sources: [],
-    platforms: [],
-    age_group: "",
-    hours_per_week: "",
-    devices: [],
-    genres: [],
-    selected_title: "",
-    title_id: 1,
-    buzz_score: 8,
-    recommend: "",
-    standout_elements: [],
-    talent_interest: "",
-    social_share: "",
-    one_word: "",
-    comments: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   function updateField(field, value) {
     setFormData({ ...formData, [field]: value });
@@ -690,9 +692,15 @@ function App() {
                 </div>
 
                 <div className="button-row">
-                  <button className="button primary" onClick={() => setScreen("landing")}>
-                    Finish
-                  </button>
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    setFormData(initialFormData);
+                    setScreen("landing");
+                  }}
+                >
+                  Finish
+                </button>
                 </div>
               </div>
             </section>
