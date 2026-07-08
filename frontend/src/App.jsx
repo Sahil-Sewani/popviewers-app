@@ -264,7 +264,32 @@ function App() {
               </div>
 
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("discover")}>
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    if (!formData.first_name.trim()) {
+                      alert("Please enter your first name.");
+                      return;
+                    }
+
+                    if (!formData.last_name.trim()) {
+                      alert("Please enter your last name.");
+                      return;
+                    }
+
+                    if (!formData.email.trim()) {
+                      alert("Please enter your email address.");
+                      return;
+                    }
+
+                    if (!formData.email.includes("@")) {
+                      alert("Please enter a valid email address.");
+                      return;
+                    }
+
+                    setScreen("discover");
+                  }}
+                >
                   Continue
                 </button>
               </div>
