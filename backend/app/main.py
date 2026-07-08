@@ -35,10 +35,16 @@ def load_admin_secret():
     return json.loads(response["SecretString"])
 
 
-ADMIN_SECRET = load_admin_secret()
-ADMIN_USERNAME = ADMIN_SECRET["username"]
-ADMIN_PASSWORD = ADMIN_SECRET["password"]
-JWT_SECRET_KEY = ADMIN_SECRET["jwt_secret"]
+_admin_secret_cache = None
+
+
+def get_admin_secret():
+    global _admin_secret_cache
+
+    if _admin_secret_cache is None:
+        _admin_secret_cache = load_admin_secret()
+
+    return _admin_secret_cache
 
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_MINUTES = 720
@@ -52,19 +58,26 @@ class AdminLoginRequest(BaseModel):
 
 
 def create_access_token(data: dict):
+    admin_secret = get_admin_secret()
+    jwt_secret_key = admin_secret["jwt_secret"]
+
     expires = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
     payload = {**data, "exp": expires}
-    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload, jwt_secret_key, algorithm=JWT_ALGORITHM)
 
 
 def require_admin(
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ):
+    admin_secret = get_admin_secret()
+    admin_username = admin_secret["username"]
+    jwt_secret_key = admin_secret["jwt_secret"]
+
     token = credentials.credentials
 
     try:
-        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
-        if payload.get("sub") != ADMIN_USERNAME:
+        payload = jwt.decode(token, jwt_secret_key, algorithms=[JWT_ALGORITHM])
+        if payload.get("sub") != admin_username:
             raise HTTPException(status_code=401, detail="Invalid token")
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
@@ -88,19 +101,17 @@ app.add_middleware(
 
 @app.post("/admin/login")
 def admin_login(login: AdminLoginRequest):
-    if not ADMIN_USERNAME or not ADMIN_PASSWORD or not JWT_SECRET_KEY:
-        raise HTTPException(
-            status_code=500,
-            detail="Admin authentication is not configured",
-        )
+    admin_secret = get_admin_secret()
+    admin_username = admin_secret["username"]
+    admin_password = admin_secret["password"]
 
-    if login.username != ADMIN_USERNAME or login.password != ADMIN_PASSWORD:
+    if login.username != admin_username or login.password != admin_password:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password",
         )
 
-    token = create_access_token({"sub": ADMIN_USERNAME})
+    token = create_access_token({"sub": admin_username})
 
     return {"access_token": token, "token_type": "bearer"}
 
