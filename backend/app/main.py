@@ -1,6 +1,15 @@
-from fastapi import Depends, FastAPI
-from sqlalchemy.orm import Session
+import json
+import os
+from datetime import datetime, timedelta, timezone
+
+import boto3
+
+from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from jose import JWTError, jwt
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
 from app.models import Campaign, SurveyResponse, Title
@@ -17,6 +26,52 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="PopViewers API")
 
+ADMIN_SECRET_NAME = os.getenv("ADMIN_SECRET_NAME", "popviewers/prod/admin")
+
+
+def load_admin_secret():
+    client = boto3.client("secretsmanager", region_name="us-east-1")
+    response = client.get_secret_value(SecretId=ADMIN_SECRET_NAME)
+    return json.loads(response["SecretString"])
+
+
+ADMIN_SECRET = load_admin_secret()
+ADMIN_USERNAME = ADMIN_SECRET["username"]
+ADMIN_PASSWORD = ADMIN_SECRET["password"]
+JWT_SECRET_KEY = ADMIN_SECRET["jwt_secret"]
+
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRE_MINUTES = 720
+
+security = HTTPBearer()
+
+
+class AdminLoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+def create_access_token(data: dict):
+    expires = datetime.now(timezone.utc) + timedelta(minutes=JWT_EXPIRE_MINUTES)
+    payload = {**data, "exp": expires}
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def require_admin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+):
+    token = credentials.credentials
+
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        if payload.get("sub") != ADMIN_USERNAME:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    return True
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -29,6 +84,25 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.post("/admin/login")
+def admin_login(login: AdminLoginRequest):
+    if not ADMIN_USERNAME or not ADMIN_PASSWORD or not JWT_SECRET_KEY:
+        raise HTTPException(
+            status_code=500,
+            detail="Admin authentication is not configured",
+        )
+
+    if login.username != ADMIN_USERNAME or login.password != ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password",
+        )
+
+    token = create_access_token({"sub": ADMIN_USERNAME})
+
+    return {"access_token": token, "token_type": "bearer"}
 
 
 @app.get("/")
@@ -93,5 +167,8 @@ def create_response(response: SurveyResponseCreate, db: Session = Depends(get_db
 
 
 @app.get("/responses", response_model=list[SurveyResponseOut])
-def list_responses(db: Session = Depends(get_db)):
+def list_responses(
+    db: Session = Depends(get_db),
+    admin: bool = Depends(require_admin),
+):
     return db.query(SurveyResponse).order_by(SurveyResponse.id.desc()).all()

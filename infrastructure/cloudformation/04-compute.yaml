@@ -153,6 +153,7 @@ Resources:
 
             cat > /etc/popviewers/backend.env <<EOF
             DATABASE_URL=postgresql+psycopg2://${!DB_USERNAME}:${!DB_PASSWORD}@${!DB_ENDPOINT}:5432/${!DB_NAME}
+            ADMIN_SECRET_NAME=popviewers/prod/admin
             EOF
 
             chown root:root /etc/popviewers/backend.env
