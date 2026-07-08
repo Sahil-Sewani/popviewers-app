@@ -48,6 +48,24 @@ function App() {
   }
 
   async function handleSubmit() {
+    if (!formData.first_name.trim()) {
+      alert("Please enter your first name.");
+      setScreen("signup");
+      return;
+    }
+
+    if (!formData.last_name.trim()) {
+      alert("Please enter your last name.");
+      setScreen("signup");
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      alert("Please enter your email address.");
+      setScreen("signup");
+      return;
+    }
+
     const payload = {
       ...formData,
       discovery_sources: formData.discovery_sources.join(", "),
