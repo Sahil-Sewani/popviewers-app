@@ -73,6 +73,10 @@ The primary objectives of the platform are:
 
 The system consists of two primary applications.
 
+## System Architecture
+
+![Architecture](docs/images/architecture-overview.png)
+
 ## Public Application
 
 The attendee-facing application allows users to:
