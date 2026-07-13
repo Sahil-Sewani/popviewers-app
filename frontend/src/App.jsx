@@ -259,7 +259,7 @@ async function loadAdminResponses(token = adminToken) {
                     }
                   }}
                 >
-                  Admin
+                  Staff Login
                 </button>
               </div>
 
