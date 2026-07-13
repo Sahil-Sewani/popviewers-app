@@ -193,9 +193,11 @@ Resources:
                 server_name _;
 
                 location /health {
-                    access_log off;
-                    return 200 "ok\n";
-                    add_header Content-Type text/plain;
+                    proxy_pass http://127.0.0.1:8000/health;
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
                 }
 
                 location / {
@@ -213,9 +215,25 @@ Resources:
             systemctl daemon-reload
             systemctl enable popviewers-backend
             systemctl enable nginx
-            systemctl restart nginx
 
-            echo "PopViewers backend server ready for deployment" > /opt/popviewers/README.txt
+            echo "Downloading latest PopViewers backend release..."
+
+            aws s3 cp \
+              s3://popviewers-prod-deployments-003107248390/backend/latest/backend.tar.gz \
+              /tmp/backend.tar.gz \
+              --region us-east-1
+
+            rm -rf /tmp/popviewers-bootstrap
+            mkdir -p /tmp/popviewers-bootstrap
+
+            tar -xzf /tmp/backend.tar.gz -C /tmp/popviewers-bootstrap
+
+            chmod +x /tmp/popviewers-bootstrap/scripts/deploy-backend.sh
+
+            /tmp/popviewers-bootstrap/scripts/deploy-backend.sh
+
+            echo "PopViewers backend deployed successfully during instance bootstrap" \
+              > /opt/popviewers/README.txt
 
   BackendAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
