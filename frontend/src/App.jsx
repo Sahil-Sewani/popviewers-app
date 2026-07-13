@@ -2,6 +2,11 @@ import { useState } from "react";
 import "./index.css";
 import logo from "./assets/logo.png";
 import { API_URL } from "./config";
+import {
+  getAdminToken,
+  saveAdminToken,
+  removeAdminToken,
+} from "./auth";
 
 const initialFormData = {
   campaign_id: 1,
@@ -32,6 +37,11 @@ function App() {
   const [responses, setResponses] = useState([]);
 
   const [formData, setFormData] = useState(initialFormData);
+
+const [adminUsername, setAdminUsername] = useState("");
+const [adminPassword, setAdminPassword] = useState("");
+const [adminToken, setAdminToken] = useState(getAdminToken());
+const [adminError, setAdminError] = useState("");
 
   function updateField(field, value) {
     setFormData({ ...formData, [field]: value });
@@ -95,22 +105,69 @@ function App() {
     }
   }
 
-  async function loadAdminResponses() {
-    try {
-      const response = await fetch(`${API_URL}/responses`);
+  async function handleAdminLogin() {
+  setAdminError("");
 
-      if (!response.ok) {
-        throw new Error("Failed to load responses");
-      }
+  try {
+    const response = await fetch(`${API_URL}/admin/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: adminUsername,
+        password: adminPassword,
+      }),
+    });
 
-      const data = await response.json();
-      setResponses(data);
-      setScreen("admin");
-    } catch (error) {
-      console.error(error);
-      alert("Unable to load admin responses.");
+    if (!response.ok) {
+      throw new Error("Invalid username or password");
     }
+
+    const data = await response.json();
+
+    saveAdminToken(data.access_token);
+    setAdminToken(data.access_token);
+    setAdminPassword("");
+
+    await loadAdminResponses(data.access_token);
+  } catch (error) {
+    console.error(error);
+    setAdminError("Invalid username or password.");
   }
+}
+
+async function loadAdminResponses(token = adminToken) {
+  if (!token) {
+    setScreen("adminLogin");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/responses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to load responses");
+    }
+
+    const data = await response.json();
+
+    setResponses(data);
+    setScreen("admin");
+    setAdminError("");
+  } catch (error) {
+    console.error(error);
+
+    removeAdminToken();
+    setAdminToken("");
+    setScreen("adminLogin");
+    setAdminError("Please log in again.");
+  }
+}
 
   function exportResponsesCsv() {
     const headers = [
@@ -192,7 +249,16 @@ function App() {
             <section className="screen">
               <div className="topbar">
                 <span>PopViewers</span>
-                <button className="back-link" onClick={loadAdminResponses}>
+                <button 
+                  className="back-link"
+                  onClick={() => {
+                    if (adminToken) {
+                      loadAdminResponses(adminToken);
+                    } else {
+                      setScreen("adminLogin");
+                    }
+                  }}
+                >
                   Admin
                 </button>
               </div>
@@ -749,6 +815,61 @@ function App() {
             </section>
           )}
 
+          {screen === "adminLogin" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>PopViewers</span>
+                <span>Admin Login</span>
+              </div>
+
+              <button
+                className="back-link"
+                onClick={() => {
+                  setAdminError("");
+                  setScreen("landing");
+                }}
+              >
+                ← Back
+              </button>
+
+              <h2>Admin Access</h2>
+              <p>Enter your credentials to view survey responses.</p>
+
+              <div className="section stack">
+                <div className="input-box">
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={adminUsername}
+                    onChange={(event) => setAdminUsername(event.target.value)}
+                  />
+                </div>
+
+                <div className="input-box">
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={adminPassword}
+                    onChange={(event) => setAdminPassword(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        handleAdminLogin();
+                      }
+                    }}
+                  />
+                </div>
+
+                {adminError && <p>{adminError}</p>}
+              </div>
+
+              <div className="nav-row">
+                <button className="button primary" onClick={handleAdminLogin}>
+                  Log In
+                </button>
+              </div>
+            </section>
+          )}
+
           {screen === "admin" && (
             <section className="screen">
               <div className="topbar">
@@ -756,9 +877,32 @@ function App() {
                 <span>Admin</span>
               </div>
 
-              <button className="back-link" onClick={() => setScreen("landing")}>
-                ← Back
-              </button>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "16px",
+                }}
+              >
+                <button className="back-link" onClick={() => setScreen("landing")}>
+                  ← Back
+                </button>
+
+                <button
+                  className="back-link"
+                  onClick={() => {
+                    removeAdminToken();
+                    setAdminToken("");
+                    setAdminUsername("");
+                    setAdminPassword("");
+                    setResponses([]);
+                    setScreen("landing");
+                  }}
+                >
+                  Log Out
+                </button>
+              </div>
 
               <h2>Responses</h2>
 
