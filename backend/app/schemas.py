@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr
@@ -66,6 +67,7 @@ class SurveyResponseCreate(BaseModel):
 
 class SurveyResponseOut(SurveyResponseCreate):
     id: int
+    created_at: Optional[datetime] = None
 
     model_config = {
         "from_attributes": True
