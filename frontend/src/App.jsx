@@ -32,6 +32,10 @@ const initialFormData = {
   comments: "",
 };
 
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 function App() {
   const [screen, setScreen] = useState("landing");
   const [responses, setResponses] = useState([]);
@@ -76,6 +80,12 @@ const [adminError, setAdminError] = useState("");
       return;
     }
 
+    if (!isValidEmail(formData.email)) {
+      alert("Please enter a valid email address, such as name@example.com.");
+      setScreen("signup");
+      return;
+    }
+
     const payload = {
       ...formData,
       discovery_sources: formData.discovery_sources.join(", "),
@@ -95,14 +105,30 @@ const [adminError, setAdminError] = useState("");
       });
 
       if (!response.ok) {
-        throw new Error("Failed to submit feedback");
+        let message = "Unable to submit feedback. Please check your answers.";
+
+        try {
+          const errorData = await response.json();
+
+          if (response.status === 422 && Array.isArray(errorData.detail)) {
+            message =
+              errorData.detail[0]?.msg ||
+              "Please check that all required information is valid.";
+          } else if (typeof errorData.detail === "string") {
+            message = errorData.detail;
+          }
+        } catch {
+          // Keep the default message if the API response is not JSON.
+        }
+
+        throw new Error(message);
       }
 
       setScreen("thankyou");
-    } catch (error) {
-      console.error(error);
-      alert("Unable to submit feedback. Please try again.");
-    }
+      } catch (error) {
+        console.error(error);
+        alert(error.message || "Unable to submit feedback. Please try again.");
+      }
   }
 
   async function handleAdminLogin() {
@@ -347,8 +373,8 @@ async function loadAdminResponses(token = adminToken) {
                       return;
                     }
 
-                    if (!formData.email.includes("@")) {
-                      alert("Please enter a valid email address.");
+                    if (!isValidEmail(formData.email)) {
+                      alert("Please enter a valid email address, such as name@example.com.");
                       return;
                     }
 
