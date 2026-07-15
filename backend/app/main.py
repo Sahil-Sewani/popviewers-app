@@ -128,7 +128,11 @@ def health():
 
 
 @app.post("/campaigns", response_model=CampaignOut)
-def create_campaign(campaign: CampaignCreate, db: Session = Depends(get_db)):
+def create_campaign(
+    campaign: CampaignCreate,
+    db: Session = Depends(get_db),
+    admin: bool = Depends(require_admin),
+):
     new_campaign = Campaign(
         name=campaign.name,
         event_date=campaign.event_date,
@@ -148,7 +152,11 @@ def list_campaigns(db: Session = Depends(get_db)):
 
 
 @app.post("/titles", response_model=TitleOut)
-def create_title(title: TitleCreate, db: Session = Depends(get_db)):
+def create_title(
+    title: TitleCreate,
+    db: Session = Depends(get_db),
+    admin: bool = Depends(require_admin),
+):
     new_title = Title(
         campaign_id=title.campaign_id,
         name=title.name,
