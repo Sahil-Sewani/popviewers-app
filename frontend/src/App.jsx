@@ -240,28 +240,52 @@ async function loadAdminResponses(token = adminToken) {
   function exportResponsesCsv() {
     const headers = [
       "id",
+      "campaign_id",
+      "title_id",
       "first_name",
       "last_name",
       "email",
       "phone",
       "instagram",
+      "discovery_sources",
+      "platforms",
+      "age_group",
+      "hours_per_week",
+      "devices",
+      "genres",
       "buzz_score",
       "recommend",
+      "standout_elements",
+      "talent_interest",
+      "social_share",
       "one_word",
       "comments",
+      "created_at",
     ];
 
     const rows = responses.map((response) => [
-      response.id,
-      response.first_name || "",
-      response.last_name || "",
-      response.email || "",
-      response.phone || "",
-      response.instagram || "",
-      response.buzz_score || "",
-      response.recommend || "",
-      response.one_word || "",
-      response.comments || "",
+      response.id ?? "",
+      response.campaign_id ?? "",
+      response.title_id ?? "",
+      response.first_name ?? "",
+      response.last_name ?? "",
+      response.email ?? "",
+      response.phone ?? "",
+      response.instagram ?? "",
+      response.discovery_sources ?? "",
+      response.platforms ?? "",
+      response.age_group ?? "",
+      response.hours_per_week ?? "",
+      response.devices ?? "",
+      response.genres ?? "",
+      response.buzz_score ?? "",
+      response.recommend ?? "",
+      response.standout_elements ?? "",
+      response.talent_interest ?? "",
+      response.social_share ?? "",
+      response.one_word ?? "",
+      response.comments ?? "",
+      response.created_at ?? "",
     ]);
 
     const csvContent = [headers, ...rows]
@@ -281,7 +305,10 @@ async function loadAdminResponses(token = adminToken) {
 
     link.href = url;
     link.download = "popviewers-responses.csv";
+
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
 
     URL.revokeObjectURL(url);
   }
