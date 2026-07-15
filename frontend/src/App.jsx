@@ -243,7 +243,6 @@ async function loadAdminResponses(token = adminToken) {
     <div className="app-bg">
       <div className="phone-shell">
         <div className="phone">
-          <div className="dynamic-island"></div>
 
           {screen === "landing" && (
             <section className="screen">

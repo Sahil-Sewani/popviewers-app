@@ -77,24 +77,12 @@ body,
   backdrop-filter: blur(18px);
 }
 
-.dynamic-island {
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 126px;
-  height: 34px;
-  border-radius: 999px;
-  background: #08080c;
-  z-index: 20;
-}
-
 .screen {
   position: absolute;
   inset: 0;
   display: flex;
   flex-direction: column;
-  padding: 68px 22px 28px;
+  padding: 28px 22px 28px;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
 }
