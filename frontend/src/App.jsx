@@ -36,6 +36,20 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
+function formatPhoneNumber(value) {
+  const digits = value.replace(/\D/g, "").slice(0, 10);
+
+  if (digits.length < 4) {
+    return digits;
+  }
+
+  if (digits.length < 7) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  }
+
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 function App() {
   const [screen, setScreen] = useState("landing");
   const [responses, setResponses] = useState([]);
@@ -109,8 +123,11 @@ function App() {
 
     setIsSubmitting(true);
 
+    const normalizedPhone = formData.phone.replace(/\D/g, "");
+
     const payload = {
       ...formData,
+      phone: normalizedPhone,
       discovery_sources: formData.discovery_sources.join(", "),
       platforms: formData.platforms.join(", "),
       devices: formData.devices.join(", "),
@@ -373,7 +390,14 @@ async function loadAdminResponses(token = adminToken) {
                       type={type}
                       placeholder={placeholder}
                       value={formData[field]}
-                      onChange={(e) => updateField(field, e.target.value)}
+                      onChange={(e) => {
+                        const value =
+                          field === "phone"
+                            ? formatPhoneNumber(e.target.value)
+                            : e.target.value;
+
+                        updateField(field, value);
+                      }}
                     />
                   </div>
                 ))}
