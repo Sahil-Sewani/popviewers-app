@@ -261,48 +261,48 @@ async function loadAdminResponses(token = adminToken) {
                 >
                   Staff Login
                 </button>
-              </div>
-
-              <div className="logo-wrap">
-                <img src={logo} alt="PopViewers Logo" className="logo" />
-              </div>
-
-              <div className="section glass-card hero">
-                <div className="eyebrow">Audience Intelligence</div>
-                <h1>Join the Vibes & Views experience.</h1>
-                <p>
-                  Scan in, share your perspective, and help shape what gets
-                  watched, talked about, and greenlit next.
-                </p>
-
-                <div className="button-row">
-                  <button className="button primary" onClick={() => setScreen("signup")}>
-                    Join Now
-                  </button>
-
-                  <button className="button secondary" onClick={() => setScreen("signup")}>
-                    Preview Flow
-                  </button>
                 </div>
-              </div>
 
-              <div className="subtle-note">
-                Designed as a fast, event-first experience: quick signup before
-                the screening, richer feedback after the screening.
-              </div>
-            </section>
-          )}
+                <div className="logo-wrap">
+                  <img src={logo} alt="PopViewers Logo" className="logo" />
+                </div>
 
-          {screen === "signup" && (
-            <section className="screen">
-              <div className="topbar">
-                <span>Step 1 of 8</span>
-                <span>Join the List</span>
-              </div>
+                <div className="section glass-card hero">
+                  <div className="eyebrow">PopViewers Presents</div>
 
-              <button className="back-link" onClick={() => setScreen("landing")}>
-                ← Back
-              </button>
+                  <h1>Welcome to ViewerCon</h1>
+
+                  <p>
+                    We're excited to have you here! Share your thoughts on today's screening and
+                    help shape the future of entertainment through audience insights.
+                  </p>
+
+                  <div className="button-row">
+                    <button
+                      className="button primary"
+                      onClick={() => setScreen("signup")}
+                    >
+                      Join Now
+                    </button>
+                  </div>
+                </div>
+
+                <div className="subtle-note">
+                  Thank you for taking a few minutes to share your feedback.
+                </div>
+                </section>
+                )}
+
+                {screen === "signup" && (
+                  <section className="screen">
+                    <div className="topbar">
+                      <span>Step 1 of 8</span>
+                      <span>Join the List</span>
+                    </div>
+
+                    <button className="back-link" onClick={() => setScreen("landing")}>
+                      ← Back
+                    </button>
 
               <h2>Join Vibes & Views</h2>
               <p>
