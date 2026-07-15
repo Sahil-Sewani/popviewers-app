@@ -10,6 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.database import Base, engine, get_db
 from app.models import Campaign, SurveyResponse, Title
@@ -167,14 +168,63 @@ def list_titles(db: Session = Depends(get_db)):
 
 
 @app.post("/responses", response_model=SurveyResponseOut)
-def create_response(response: SurveyResponseCreate, db: Session = Depends(get_db)):
-    new_response = SurveyResponse(**response.model_dump())
+def create_response(
+    response: SurveyResponseCreate,
+    db: Session = Depends(get_db),
+):
+    try:
+        campaign = (
+            db.query(Campaign)
+            .filter(Campaign.id == response.campaign_id)
+            .first()
+        )
 
-    db.add(new_response)
-    db.commit()
-    db.refresh(new_response)
+        if campaign is None:
+            raise HTTPException(
+                status_code=400,
+                detail="The selected campaign is unavailable.",
+            )
 
-    return new_response
+        title = (
+            db.query(Title)
+            .filter(
+                Title.id == response.title_id,
+                Title.campaign_id == response.campaign_id,
+            )
+            .first()
+        )
+
+        if title is None:
+            raise HTTPException(
+                status_code=400,
+                detail="The selected title is unavailable.",
+            )
+
+        new_response = SurveyResponse(**response.model_dump())
+
+        db.add(new_response)
+        db.commit()
+        db.refresh(new_response)
+
+        return new_response
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=400,
+            detail="The response contains invalid campaign or title information.",
+        )
+
+    except SQLAlchemyError:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail="The response could not be saved. Please try again.",
+        )
 
 
 @app.get("/responses", response_model=list[SurveyResponseOut])

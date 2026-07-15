@@ -42,10 +42,12 @@ function App() {
 
   const [formData, setFormData] = useState(initialFormData);
 
-const [adminUsername, setAdminUsername] = useState("");
-const [adminPassword, setAdminPassword] = useState("");
-const [adminToken, setAdminToken] = useState(getAdminToken());
-const [adminError, setAdminError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [adminUsername, setAdminUsername] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
+  const [adminToken, setAdminToken] = useState(getAdminToken());
+  const [adminError, setAdminError] = useState("");
 
   function updateField(field, value) {
     setFormData({ ...formData, [field]: value });
@@ -62,6 +64,10 @@ const [adminError, setAdminError] = useState("");
   }
 
   async function handleSubmit() {
+    if (isSubmitting) {
+      return;
+    }
+
     if (!formData.first_name.trim()) {
       alert("Please enter your first name.");
       setScreen("signup");
@@ -85,6 +91,23 @@ const [adminError, setAdminError] = useState("");
       setScreen("signup");
       return;
     }
+
+    if (!formData.selected_title || !formData.title_id) {
+      alert("Please select the event or title.");
+      return;
+    }
+
+    if (!formData.recommend) {
+      alert("Please tell us whether you would recommend this title.");
+      return;
+    }
+
+    if (!formData.one_word.trim()) {
+      alert("Please enter one word describing your experience.");
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const payload = {
       ...formData,
@@ -125,10 +148,12 @@ const [adminError, setAdminError] = useState("");
       }
 
       setScreen("thankyou");
-      } catch (error) {
-        console.error(error);
-        alert(error.message || "Unable to submit feedback. Please try again.");
-      }
+    } catch (error) {
+      console.error(error);
+      alert(error.message || "Unable to submit feedback. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   async function handleAdminLogin() {
@@ -799,8 +824,12 @@ async function loadAdminResponses(token = adminToken) {
               </div>
 
               <div className="nav-row">
-                <button className="button primary" onClick={handleSubmit}>
-                  Submit Feedback
+                <button
+                  className="button primary"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Feedback"}
                 </button>
               </div>
             </section>
