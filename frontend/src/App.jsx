@@ -241,7 +241,9 @@ async function loadAdminResponses(token = adminToken) {
     const headers = [
       "id",
       "campaign_id",
+      "campaign_name",
       "title_id",
+      "title_name",
       "first_name",
       "last_name",
       "email",
@@ -266,7 +268,9 @@ async function loadAdminResponses(token = adminToken) {
     const rows = responses.map((response) => [
       response.id ?? "",
       response.campaign_id ?? "",
+      response.campaign_name ?? "",
       response.title_id ?? "",
+      response.title_name ?? "",
       response.first_name ?? "",
       response.last_name ?? "",
       response.email ?? "",

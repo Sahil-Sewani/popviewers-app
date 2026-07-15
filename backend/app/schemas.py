@@ -67,6 +67,8 @@ class SurveyResponseCreate(BaseModel):
 
 class SurveyResponseOut(SurveyResponseCreate):
     id: int
+    campaign_name: Optional[str] = None
+    title_name: Optional[str] = None
     created_at: Optional[datetime] = None
 
     model_config = {

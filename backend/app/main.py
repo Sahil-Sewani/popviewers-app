@@ -240,4 +240,29 @@ def list_responses(
     db: Session = Depends(get_db),
     admin: bool = Depends(require_admin),
 ):
-    return db.query(SurveyResponse).order_by(SurveyResponse.id.desc()).all()
+    rows = (
+        db.query(
+            SurveyResponse,
+            Campaign.name.label("campaign_name"),
+            Title.name.label("title_name"),
+        )
+        .join(
+            Campaign,
+            Campaign.id == SurveyResponse.campaign_id,
+        )
+        .outerjoin(
+            Title,
+            Title.id == SurveyResponse.title_id,
+        )
+        .order_by(SurveyResponse.id.desc())
+        .all()
+    )
+
+    return [
+        {
+            **response.__dict__,
+            "campaign_name": campaign_name,
+            "title_name": title_name,
+        }
+        for response, campaign_name, title_name in rows
+    ]
