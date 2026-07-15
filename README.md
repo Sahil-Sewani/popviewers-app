@@ -265,26 +265,46 @@ Frontend deployments automatically update the CloudFront-hosted application.
 
 # Security Model
 
-Public Endpoints
+## Public Endpoints
 
-- GET /health
-- POST /responses
-- POST /admin/login
-- GET /campaigns
-- GET /titles
+- `GET /`
+- `GET /health`
+- `GET /campaigns`
+- `GET /titles`
+- `POST /responses`
+- `POST /admin/login`
 
-Protected Endpoints
+## Protected Admin Endpoints
 
-- GET /responses
+The following endpoints require a valid JWT Bearer token:
 
-Authentication
+- `GET /responses`
+- `POST /campaigns`
+- `POST /titles`
 
-JWT Bearer Tokens
+## Authentication
 
-Secrets
+- JWT Bearer tokens
+- Admin credentials stored in AWS Secrets Manager
+- Tokens validated by the FastAPI backend
+- Expired or invalid tokens return `401 Unauthorized`
 
-AWS Secrets Manager
+## Data Protection
 
+- HTTPS is enforced for frontend and API traffic
+- Amazon RDS is deployed in private subnets
+- Database and admin credentials are stored in AWS Secrets Manager
+- EC2 uses an IAM role with restricted access to required secrets and deployment artifacts
+- Administrative write operations are protected from unauthenticated access
+
+## Input and Reliability Protections
+
+- Email format validation
+- Duplicate submission prevention
+- Database transaction rollback on failures
+- Campaign and title validation before saving responses
+- Friendly API validation errors
+- Phone numbers normalized before storage
 ---
 
 # Current Release
