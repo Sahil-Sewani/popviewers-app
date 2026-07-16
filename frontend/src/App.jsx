@@ -16,6 +16,7 @@ const initialFormData = {
   instagram: "",
   phone: "",
   discovery_sources: [],
+  attendance_reason: "",
   platforms: [],
   age_group: "",
   hours_per_week: "",
@@ -250,6 +251,7 @@ async function loadAdminResponses(token = adminToken) {
       "phone",
       "instagram",
       "discovery_sources",
+      "attendance_reason",
       "platforms",
       "age_group",
       "hours_per_week",
@@ -277,6 +279,7 @@ async function loadAdminResponses(token = adminToken) {
       response.phone ?? "",
       response.instagram ?? "",
       response.discovery_sources ?? "",
+      response.attendance_reason ?? "",
       response.platforms ?? "",
       response.age_group ?? "",
       response.hours_per_week ?? "",
@@ -501,7 +504,72 @@ async function loadAdminResponses(token = adminToken) {
               </div>
 
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("platforms")}>
+                <button
+                  className="button primary"
+                  onClick={() => setScreen("attendanceReason")}
+                >
+                  Continue
+                </button>
+              </div>
+            </section>
+          )}
+
+          {screen === "attendanceReason" && (
+            <section className="screen">
+              <div className="topbar">
+                <span>Step 3 of 9</span>
+                <span>Why You're Here</span>
+              </div>
+
+              <button
+                className="back-link"
+                onClick={() => setScreen("discover")}
+              >
+                ← Back
+              </button>
+
+              <h2>What brought you here tonight?</h2>
+              <p>
+                What was the biggest reason you decided to attend today's Fightland
+                premiere?
+              </p>
+
+              <div className="section stack">
+                {[
+                  "50 Cent",
+                  "The official trailer",
+                  "The cast",
+                  "The story or premise",
+                  "ViewerCon",
+                  "Recommendation from a friend or family member",
+                  "Social media",
+                  "I was curious",
+                  "Other",
+                ].map((item) => (
+                  <div
+                    key={item}
+                    className={`card-option ${
+                      formData.attendance_reason === item ? "selected" : ""
+                    }`}
+                    onClick={() => updateField("attendance_reason", item)}
+                  >
+                    {item}
+                  </div>
+                ))}
+              </div>
+
+              <div className="nav-row">
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    if (!formData.attendance_reason) {
+                      alert("Please select what brought you here tonight.");
+                      return;
+                    }
+
+                    setScreen("platforms");
+                  }}
+                >
                   Continue
                 </button>
               </div>
@@ -511,11 +579,14 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "platforms" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 3 of 8</span>
+                <span>Step 4 of 9</span>
                 <span>Platforms</span>
               </div>
 
-              <button className="back-link" onClick={() => setScreen("discover")}>
+              <button
+                className="back-link"
+                onClick={() => setScreen("attendanceReason")}
+              >
                 ← Back
               </button>
 
@@ -557,7 +628,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "profile" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 4 of 8</span>
+                <span>Step 5 of 9</span>
                 <span>Audience Profile</span>
               </div>
 
@@ -658,7 +729,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "title" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 5 of 8</span>
+                <span>Step 6 of 9</span>
                 <span>Event Title</span>
               </div>
 
@@ -704,7 +775,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "buzz" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 6 of 8</span>
+                <span>Step 7 of 9</span>
                 <span>Reaction Signal</span>
               </div>
 
@@ -761,7 +832,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "standout" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 7 of 8</span>
+                <span>Step 8 of 9</span>
                 <span>What Landed</span>
               </div>
 
@@ -843,7 +914,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "final" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 8 of 8</span>
+                <span>Step 9 of 9</span>
                 <span>Final Take</span>
               </div>
 

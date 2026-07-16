@@ -39,6 +39,7 @@ class SurveyResponse(Base):
     phone = Column(String, nullable=True)
 
     discovery_sources = Column(Text, nullable=True)
+    attendance_reason = Column(String, nullable=True)
     platforms = Column(Text, nullable=True)
     age_group = Column(String, nullable=True)
     hours_per_week = Column(String, nullable=True)

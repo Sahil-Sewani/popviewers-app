@@ -49,6 +49,7 @@ class SurveyResponseCreate(BaseModel):
     phone: Optional[str] = None
 
     discovery_sources: Optional[str] = None
+    attendance_reason: Optional[str] = None
     platforms: Optional[str] = None
     age_group: Optional[str] = None
     hours_per_week: Optional[str] = None
