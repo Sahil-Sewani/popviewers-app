@@ -17,6 +17,7 @@ const initialFormData = {
   phone: "",
   discovery_sources: [],
   attendance_reason: "",
+  title_familiarity: "",
   platforms: [],
   age_group: "",
   hours_per_week: "",
@@ -26,6 +27,8 @@ const initialFormData = {
   title_id: 4,
   buzz_score: 8,
   recommend: "",
+  continue_watching: "",
+  live_audience_experience: "",
   standout_elements: [],
   talent_interest: "",
   social_share: "",
@@ -119,6 +122,11 @@ function App() {
 
     if (!formData.one_word.trim()) {
       alert("Please enter one word describing your experience.");
+      return;
+    }
+
+    if (!formData.live_audience_experience) {
+      alert("Please tell us how the live audience affected your experience.");
       return;
     }
 
@@ -238,108 +246,93 @@ async function loadAdminResponses(token = adminToken) {
   }
 }
 
-  function exportResponsesCsv() {
-    const headers = [
-      "id",
-      "campaign_id",
-      "campaign_name",
-      "title_id",
-      "title_name",
-      "first_name",
-      "last_name",
-      "email",
-      "phone",
-      "instagram",
-      "discovery_sources",
-      "attendance_reason",
-      "platforms",
-      "age_group",
-      "hours_per_week",
-      "devices",
-      "genres",
-      "buzz_score",
-      "recommend",
-      "standout_elements",
-      "talent_interest",
-      "social_share",
-      "one_word",
-      "comments",
-      "created_at",
-    ];
-
-    const rows = responses.map((response) => [
-      response.id ?? "",
-      response.campaign_id ?? "",
-      response.campaign_name ?? "",
-      response.title_id ?? "",
-      response.title_name ?? "",
-      response.first_name ?? "",
-      response.last_name ?? "",
-      response.email ?? "",
-      response.phone ?? "",
-      response.instagram ?? "",
-      response.discovery_sources ?? "",
-      response.attendance_reason ?? "",
-      response.platforms ?? "",
-      response.age_group ?? "",
-      response.hours_per_week ?? "",
-      response.devices ?? "",
-      response.genres ?? "",
-      response.buzz_score ?? "",
-      response.recommend ?? "",
-      response.standout_elements ?? "",
-      response.talent_interest ?? "",
-      response.social_share ?? "",
-      response.one_word ?? "",
-      response.comments ?? "",
-      response.created_at ?? "",
-    ]);
-
-    const csvContent = [headers, ...rows]
-      .map((row) =>
-        row
-          .map((value) => `"${String(value).replaceAll('"', '""')}"`)
-          .join(",")
-      )
-      .join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "popviewers-responses.csv";
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    URL.revokeObjectURL(url);
-  }
-
-  const titles = [
-    {
-      id: 1,
-      name: "Vibes & Views Premiere Screening",
-      subtitle: "Hosted event · Audience feedback session",
-      tag: "Tonight",
-    },
-    {
-      id: 2,
-      name: "Featured Film Experience",
-      subtitle: "Special screening · curated audience",
-      tag: "Curated",
-    },
-    {
-      id: 3,
-      name: "New Series Pilot Preview",
-      subtitle: "Early-access audience preview",
-      tag: "Preview",
-    },
+function exportResponsesCsv() {
+  const headers = [
+    "id",
+    "campaign_id",
+    "campaign_name",
+    "title_id",
+    "title_name",
+    "first_name",
+    "last_name",
+    "email",
+    "phone",
+    "instagram",
+    "discovery_sources",
+    "title_familiarity",
+    "attendance_reason",
+    "platforms",
+    "age_group",
+    "hours_per_week",
+    "devices",
+    "genres",
+    "buzz_score",
+    "recommend",
+    "continue_watching",
+    "standout_elements",
+    "talent_interest",
+    "social_share",
+    "one_word",
+    "live_audience_experience",
+    "comments",
+    "created_at",
   ];
+
+  const rows = responses.map((response) => [
+    response.id ?? "",
+    response.campaign_id ?? "",
+    response.campaign_name ?? "",
+    response.title_id ?? "",
+    response.title_name ?? "",
+    response.first_name ?? "",
+    response.last_name ?? "",
+    response.email ?? "",
+    response.phone ?? "",
+    response.instagram ?? "",
+    response.discovery_sources ?? "",
+    response.title_familiarity ?? "",
+    response.attendance_reason ?? "",
+    response.platforms ?? "",
+    response.age_group ?? "",
+    response.hours_per_week ?? "",
+    response.devices ?? "",
+    response.genres ?? "",
+    response.buzz_score ?? "",
+    response.recommend ?? "",
+    response.continue_watching ?? "",
+    response.standout_elements ?? "",
+    response.talent_interest ?? "",
+    response.social_share ?? "",
+    response.one_word ?? "",
+    response.live_audience_experience ?? "",
+    response.comments ?? "",
+    response.created_at ?? "",
+  ]);
+
+  const csvContent = [headers, ...rows]
+    .map((row) =>
+      row
+        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+        .join(",")
+    )
+    .join("\n");
+
+  const blob = new Blob([csvContent], {
+    type: "text/csv;charset=utf-8;",
+  });
+
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = "popviewers-responses.csv";
+
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+
+  URL.revokeObjectURL(url);
+}
 
   return (
     <div className="app-bg">
@@ -474,15 +467,48 @@ async function loadAdminResponses(token = adminToken) {
             <section className="screen">
               <div className="topbar">
                 <span>Step 2 of 8</span>
-                <span>Discovery Style</span>
+                <span>Before Tonight</span>
               </div>
 
-              <button className="back-link" onClick={() => setScreen("signup")}>
+              <button
+                className="back-link"
+                onClick={() => setScreen("signup")}
+              >
                 ← Back
               </button>
 
-              <h2>How do you usually decide what to watch?</h2>
-              <p>Pick the sources that influence you most.</p>
+              <p className="section-intro">
+                  Before we dive into your reaction, we'd love to learn a little about your
+                  experience before today's screening.
+              </p>
+
+              <h2>Before tonight, how familiar were you with today's featured title?</h2>
+
+              <p>Select the option that best describes you.</p>
+
+                <div className="section stack">
+                  {[
+                    "Never heard of it",
+                    "Heard of it",
+                    "Saw a trailer or promotion",
+                    "Already planned to watch",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${
+                        formData.title_familiarity === item ? "selected" : ""
+                      }`}
+                      onClick={() => updateField("title_familiarity", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+
+              <h2 className="question-heading">
+                How do you usually discover new shows?
+              </h2>
+              <p>Select all that apply.</p>
 
               <div className="section stack">
                 {[
@@ -503,45 +529,19 @@ async function loadAdminResponses(token = adminToken) {
                 ))}
               </div>
 
-              <div className="nav-row">
-                <button
-                  className="button primary"
-                  onClick={() => setScreen("attendanceReason")}
-                >
-                  Continue
-                </button>
-              </div>
-            </section>
-          )}
-
-          {screen === "attendanceReason" && (
-            <section className="screen">
-              <div className="topbar">
-                <span>Step 3 of 9</span>
-                <span>Why You're Here</span>
-              </div>
-
-              <button
-                className="back-link"
-                onClick={() => setScreen("discover")}
-              >
-                ← Back
-              </button>
-
-              <h2>What brought you here tonight?</h2>
-              <p>
-                What was the biggest reason you decided to attend today's Fightland
-                premiere?
-              </p>
+              <h2 className="question-heading">
+                What brought you here tonight?
+              </h2>
+              <p>Choose the biggest reason.</p>
 
               <div className="section stack">
                 {[
                   "50 Cent",
                   "The official trailer",
                   "The cast",
-                  "The story or premise",
+                  "The story",
                   "ViewerCon",
-                  "Recommendation from a friend or family member",
+                  "Friend or family recommendation",
                   "Social media",
                   "I was curious",
                   "Other",
@@ -562,8 +562,15 @@ async function loadAdminResponses(token = adminToken) {
                 <button
                   className="button primary"
                   onClick={() => {
+                    if (!formData.title_familiarity) {
+                      alert(
+                        "Please tell us how familiar you were with the featured title."
+                      );
+                      return;
+                    }
+
                     if (!formData.attendance_reason) {
-                      alert("Please select what brought you here tonight.");
+                      alert("Please tell us what brought you here tonight.");
                       return;
                     }
 
@@ -579,13 +586,13 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "platforms" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 4 of 9</span>
+                <span>Step 3 of 8</span>
                 <span>Platforms</span>
               </div>
 
               <button
                 className="back-link"
-                onClick={() => setScreen("attendanceReason")}
+                onClick={() => setScreen("discover")}
               >
                 ← Back
               </button>
@@ -628,7 +635,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "profile" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 5 of 9</span>
+                <span>Step 4 of 8</span>
                 <span>Audience Profile</span>
               </div>
 
@@ -729,7 +736,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "title" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 6 of 9</span>
+                <span>Step 5 of 8</span>
                 <span>Fightland</span>
               </div>
 
@@ -767,7 +774,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "buzz" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 7 of 9</span>
+                <span>Step 6 of 8</span>
                 <span>Reaction Signal</span>
               </div>
 
@@ -813,8 +820,49 @@ async function loadAdminResponses(token = adminToken) {
                 </div>
               </div>
 
+              <div className="section">
+                <div className="mini-label">
+                  Based on tonight's screening, will you continue watching?
+                </div>
+
+                <div className="stack">
+                  {[
+                    "Definitely",
+                    "Probably",
+                    "Not sure",
+                    "Probably not",
+                    "Definitely not",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${
+                        formData.continue_watching === item ? "selected" : ""
+                      }`}
+                      onClick={() => updateField("continue_watching", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("standout")}>
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    if (!formData.recommend) {
+                      alert("Please tell us whether you would recommend the featured title.");
+                      return;
+                    }
+
+                    if (!formData.continue_watching) {
+                      alert("Please tell us whether you plan to continue watching.");
+                      return;
+                    }
+
+                    setScreen("standout");
+                  }}
+                >
                   Continue
                 </button>
               </div>
@@ -824,7 +872,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "standout" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 8 of 9</span>
+                <span>Step 7 of 8</span>
                 <span>What Landed</span>
               </div>
 
@@ -906,7 +954,7 @@ async function loadAdminResponses(token = adminToken) {
           {screen === "final" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 9 of 9</span>
+                <span>Step 8 of 8</span>
                 <span>Final Take</span>
               </div>
 
@@ -926,6 +974,32 @@ async function loadAdminResponses(token = adminToken) {
                     value={formData.one_word}
                     onChange={(e) => updateField("one_word", e.target.value)}
                   />
+                </div>
+              </div>
+
+              <div className="section">
+                <div className="mini-label">
+                  Did watching today's screening with a live audience make the experience
+                  more enjoyable?
+                </div>
+
+                <div className="stack">
+                  {[
+                    "Much more enjoyable",
+                    "Slightly more enjoyable",
+                    "No difference",
+                    "Less enjoyable",
+                  ].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${
+                        formData.live_audience_experience === item ? "selected" : ""
+                      }`}
+                      onClick={() => updateField("live_audience_experience", item)}
+                    >
+                      {item}
+                    </div>
+                  ))}
                 </div>
               </div>
 

@@ -40,6 +40,7 @@ class SurveyResponse(Base):
 
     discovery_sources = Column(Text, nullable=True)
     attendance_reason = Column(String, nullable=True)
+    title_familiarity = Column(String, nullable=True)
     platforms = Column(Text, nullable=True)
     age_group = Column(String, nullable=True)
     hours_per_week = Column(String, nullable=True)
@@ -48,11 +49,13 @@ class SurveyResponse(Base):
 
     buzz_score = Column(Integer, nullable=True)
     recommend = Column(String, nullable=True)
+    continue_watching = Column(String, nullable=True)
     standout_elements = Column(Text, nullable=True)
     talent_interest = Column(String, nullable=True)
     social_share = Column(String, nullable=True)
 
     one_word = Column(String, nullable=True)
+    live_audience_experience = Column(String, nullable=True)
     comments = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())

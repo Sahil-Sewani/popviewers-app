@@ -132,7 +132,7 @@ body,
 }
 
 .section {
-  margin-top: 18px;
+  margin-top: 16px;
 }
 
 .hero {
@@ -164,6 +164,13 @@ p {
   margin: 0;
   color: var(--muted);
   font-size: 16px;
+  line-height: 1.5;
+}
+
+.section-intro {
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -238,6 +245,10 @@ h2 {
   margin-bottom: 10px;
 }
 
+.question-heading {
+  margin-top: 26px;
+}
+
 .back-link {
   appearance: none;
   background: none;
@@ -254,7 +265,7 @@ h2 {
 .stack {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .input-box {
