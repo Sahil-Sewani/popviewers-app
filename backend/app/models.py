@@ -42,6 +42,8 @@ class SurveyResponse(Base):
     attendance_reason = Column(String, nullable=True)
     title_familiarity = Column(String, nullable=True)
     platforms = Column(Text, nullable=True)
+    starz_subscriber = Column(String, nullable=True)
+    starz_subscription_interest = Column(String, nullable=True)
     age_group = Column(String, nullable=True)
     hours_per_week = Column(String, nullable=True)
     devices = Column(Text, nullable=True)

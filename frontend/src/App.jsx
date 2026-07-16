@@ -19,6 +19,8 @@ const initialFormData = {
   attendance_reason: "",
   title_familiarity: "",
   platforms: [],
+  starz_subscriber: "",
+  starz_subscription_interest: "",
   age_group: "",
   hours_per_week: "",
   devices: [],
@@ -68,7 +70,10 @@ function App() {
   const [adminError, setAdminError] = useState("");
 
   function updateField(field, value) {
-    setFormData({ ...formData, [field]: value });
+    setFormData((currentFormData) => ({
+      ...currentFormData,
+      [field]: value,
+    }));
   }
 
   function toggleArrayField(field, value) {
@@ -262,6 +267,8 @@ function exportResponsesCsv() {
     "title_familiarity",
     "attendance_reason",
     "platforms",
+    "starz_subscriber",
+    "starz_subscription_interest",
     "age_group",
     "hours_per_week",
     "devices",
@@ -293,6 +300,8 @@ function exportResponsesCsv() {
     response.title_familiarity ?? "",
     response.attendance_reason ?? "",
     response.platforms ?? "",
+    response.starz_subscriber ?? "",
+    response.starz_subscription_interest ?? "",
     response.age_group ?? "",
     response.hours_per_week ?? "",
     response.devices ?? "",
@@ -624,13 +633,87 @@ function exportResponsesCsv() {
                 ))}
               </div>
 
+              <div className="section">
+                <div className="mini-label">
+                  Are you currently subscribed to STARZ?
+                </div>
+
+                <div className="stack">
+                  {["Yes", "No"].map((item) => (
+                    <div
+                      key={item}
+                      className={`card-option ${
+                        formData.starz_subscriber === item ? "selected" : ""
+                      }`}
+                      onClick={() => {
+                        updateField("starz_subscriber", item);
+
+                        if (item === "Yes") {
+                          updateField("starz_subscription_interest", "");
+                        }
+                      }}
+                    >
+                      {item}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {formData.starz_subscriber === "No" && (
+                <div className="section">
+                  <div className="mini-label">
+                    Based on today's screening, how likely are you to subscribe to STARZ?
+                  </div>
+
+                  <div className="stack">
+                    {[
+                      "Definitely",
+                      "Probably",
+                      "Not sure",
+                      "Probably not",
+                      "Definitely not",
+                    ].map((item) => (
+                      <div
+                        key={item}
+                        className={`card-option ${
+                          formData.starz_subscription_interest === item ? "selected" : ""
+                        }`}
+                        onClick={() =>
+                          updateField("starz_subscription_interest", item)
+                        }
+                      >
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("profile")}>
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    if (!formData.starz_subscriber) {
+                      alert("Please tell us whether you currently subscribe to STARZ.");
+                      return;
+                    }
+
+                    if (
+                      formData.starz_subscriber === "No" &&
+                      !formData.starz_subscription_interest
+                    ) {
+                      alert("Please tell us how likely you are to subscribe to STARZ.");
+                      return;
+                    }
+
+                    setScreen("profile");
+                  }}
+                >
                   Continue
                 </button>
               </div>
-            </section>
-          )}
+              </section>
+              )}
 
           {screen === "profile" && (
             <section className="screen">

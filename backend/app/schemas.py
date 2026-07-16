@@ -52,6 +52,8 @@ class SurveyResponseCreate(BaseModel):
     attendance_reason: Optional[str] = None
     title_familiarity: Optional[str] = None
     platforms: Optional[str] = None
+    starz_subscriber: Optional[str] = None
+    starz_subscription_interest: Optional[str] = None
     age_group: Optional[str] = None
     hours_per_week: Optional[str] = None
     devices: Optional[str] = None
