@@ -22,8 +22,8 @@ const initialFormData = {
   hours_per_week: "",
   devices: [],
   genres: [],
-  selected_title: "",
-  title_id: 1,
+  selected_title: "Fightland Premiere",
+  title_id: 4,
   buzz_score: 8,
   recommend: "",
   standout_elements: [],
@@ -107,7 +107,7 @@ function App() {
       return;
     }
 
-    if (!formData.selected_title || !formData.title_id) {
+    if (!formData.title_id) {
       alert("Please select the event or title.");
       return;
     }
@@ -730,42 +730,34 @@ async function loadAdminResponses(token = adminToken) {
             <section className="screen">
               <div className="topbar">
                 <span>Step 6 of 9</span>
-                <span>Event Title</span>
+                <span>Fightland</span>
               </div>
 
               <button className="back-link" onClick={() => setScreen("profile")}>
                 ← Back
               </button>
 
-              <h2>What did you just experience?</h2>
-              <p>Select the title or event experience you’re responding to.</p>
+              <h2>You’re reviewing Fightland</h2>
+              <p>Confirm the screening you just attended.</p>
 
               <div className="section stack">
-                {titles.map((title) => (
-                  <div
-                    key={title.id}
-                    className={`title-option ${
-                      formData.title_id === title.id ? "selected" : ""
-                    }`}
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        title_id: title.id,
-                        selected_title: title.name,
-                      })
-                    }
-                  >
-                    <div className="title-meta">
-                      <div className="title-name">{title.name}</div>
-                      <div className="title-sub">{title.subtitle}</div>
+                <div className="title-option selected">
+                  <div className="title-meta">
+                    <div className="title-name">Fightland Premiere</div>
+                    <div className="title-sub">
+                      STARZ Original · ViewerCon Screening
                     </div>
-                    <div className="pill">{title.tag}</div>
                   </div>
-                ))}
+
+                  <div className="pill">Tonight</div>
+                </div>
               </div>
 
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("buzz")}>
+                <button
+                  className="button primary"
+                  onClick={() => setScreen("buzz")}
+                >
                   Continue
                 </button>
               </div>
