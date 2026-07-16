@@ -399,7 +399,7 @@ function exportResponsesCsv() {
                 {screen === "signup" && (
                   <section className="screen">
                     <div className="topbar">
-                      <span>Step 1 of 8</span>
+                      <span>Step 1 of 7</span>
                       <span>Join the List</span>
                     </div>
 
@@ -475,7 +475,7 @@ function exportResponsesCsv() {
           {screen === "discover" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 2 of 8</span>
+                <span>Step 2 of 7</span>
                 <span>Before Tonight</span>
               </div>
 
@@ -595,8 +595,8 @@ function exportResponsesCsv() {
           {screen === "platforms" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 3 of 8</span>
-                <span>Platforms</span>
+                <span>Step 3 of 7</span>
+                <span>Viewing Habits</span>
               </div>
 
               <button
@@ -606,8 +606,8 @@ function exportResponsesCsv() {
                 ← Back
               </button>
 
-              <h2>Which platforms do you use most?</h2>
-              <p>Select all that apply.</p>
+              <h2>Tell us about how you watch.</h2>
+              <p>Select your platforms and viewing preferences.</p>
 
               <div className="section grid-3">
                 {[
@@ -690,47 +690,7 @@ function exportResponsesCsv() {
                 </div>
               )}
 
-              <div className="nav-row">
-                <button
-                  className="button primary"
-                  onClick={() => {
-                    if (!formData.starz_subscriber) {
-                      alert("Please tell us whether you currently subscribe to STARZ.");
-                      return;
-                    }
-
-                    if (
-                      formData.starz_subscriber === "No" &&
-                      !formData.starz_subscription_interest
-                    ) {
-                      alert("Please tell us how likely you are to subscribe to STARZ.");
-                      return;
-                    }
-
-                    setScreen("profile");
-                  }}
-                >
-                  Continue
-                </button>
-              </div>
-              </section>
-              )}
-
-          {screen === "profile" && (
-            <section className="screen">
-              <div className="topbar">
-                <span>Step 4 of 8</span>
-                <span>Audience Profile</span>
-              </div>
-
-              <button className="back-link" onClick={() => setScreen("platforms")}>
-                ← Back
-              </button>
-
-              <h2>Tell us a little about your viewing style.</h2>
-              <p>This helps PopViewers understand audience patterns, not just opinions.</p>
-
-              <div className="section">
+                            <div className="section">
                 <div className="mini-label">Age range</div>
                 <div className="grid-2">
                   {["18–24", "25–34", "35–44", "45+"].map((item) => (
@@ -810,21 +770,39 @@ function exportResponsesCsv() {
               </div>
 
               <div className="nav-row">
-                <button className="button primary" onClick={() => setScreen("title")}>
+                <button
+                  className="button primary"
+                  onClick={() => {
+                    if (!formData.starz_subscriber) {
+                      alert("Please tell us whether you currently subscribe to STARZ.");
+                      return;
+                    }
+
+                    if (
+                      formData.starz_subscriber === "No" &&
+                      !formData.starz_subscription_interest
+                    ) {
+                      alert("Please tell us how likely you are to subscribe to STARZ.");
+                      return;
+                    }
+
+                    setScreen("title");
+                  }}
+                >
                   Continue
                 </button>
               </div>
-            </section>
-          )}
+              </section>
+              )}
 
           {screen === "title" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 5 of 8</span>
+                <span>Step 4 of 7</span>
                 <span>Fightland</span>
               </div>
 
-              <button className="back-link" onClick={() => setScreen("profile")}>
+              <button className="back-link" onClick={() => setScreen("platforms")}>
                 ← Back
               </button>
 
@@ -858,7 +836,7 @@ function exportResponsesCsv() {
           {screen === "buzz" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 6 of 8</span>
+                <span>Step 5 of 7</span>
                 <span>Reaction Signal</span>
               </div>
 
@@ -956,7 +934,7 @@ function exportResponsesCsv() {
           {screen === "standout" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 7 of 8</span>
+                <span>Step 6 of 7</span>
                 <span>What Landed</span>
               </div>
 
@@ -1038,7 +1016,7 @@ function exportResponsesCsv() {
           {screen === "final" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 8 of 8</span>
+                <span>Step 7 of 7</span>
                 <span>Final Take</span>
               </div>
 
