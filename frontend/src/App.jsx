@@ -42,6 +42,27 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
+function getStepProgress(screen) {
+  const steps = {
+    signup: 1,
+    discover: 2,
+    platforms: 3,
+    title: 4,
+    buzz: 5,
+    standout: 6,
+    final: 7,
+  };
+
+  const currentStep = steps[screen] || 1;
+  const totalSteps = 7;
+
+  return {
+    currentStep,
+    totalSteps,
+    percentage: (currentStep / totalSteps) * 100,
+  };
+}
+
 function formatPhoneNumber(value) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
 
@@ -59,8 +80,9 @@ function formatPhoneNumber(value) {
 function App() {
   const [screen, setScreen] = useState("landing");
   const [responses, setResponses] = useState([]);
-
   const [formData, setFormData] = useState(initialFormData);
+
+  const progress = getStepProgress(screen);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -403,6 +425,19 @@ function exportResponsesCsv() {
                       <span>Join the List</span>
                     </div>
 
+                    <div className="survey-progress">
+                      <div className="survey-progress-track">
+                        <div
+                          className="survey-progress-fill"
+                          style={{ width: `${progress.percentage}%` }}
+                        />
+                      </div>
+
+                      <div className="survey-progress-text">
+                        {progress.currentStep} of {progress.totalSteps} complete
+                      </div>
+                    </div>                    
+
                     <button className="back-link" onClick={() => setScreen("landing")}>
                       ← Back
                     </button>
@@ -478,6 +513,19 @@ function exportResponsesCsv() {
                 <span>Step 2 of 7</span>
                 <span>Before Tonight</span>
               </div>
+
+              <div className="survey-progress">
+              <div className="survey-progress-track">
+                <div
+                  className="survey-progress-fill"
+                  style={{ width: `${progress.percentage}%` }}
+                />
+              </div>
+
+              <div className="survey-progress-text">
+                {progress.currentStep} of {progress.totalSteps} complete
+              </div>
+            </div>
 
               <button
                 className="back-link"
@@ -597,6 +645,19 @@ function exportResponsesCsv() {
               <div className="topbar">
                 <span>Step 3 of 7</span>
                 <span>Viewing Habits</span>
+              </div>
+
+              <div className="survey-progress">
+                <div className="survey-progress-track">
+                  <div
+                    className="survey-progress-fill"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+
+                <div className="survey-progress-text">
+                  {progress.currentStep} of {progress.totalSteps} complete
+                </div>
               </div>
 
               <button
@@ -802,6 +863,19 @@ function exportResponsesCsv() {
                 <span>Fightland</span>
               </div>
 
+              <div className="survey-progress">
+                <div className="survey-progress-track">
+                  <div
+                    className="survey-progress-fill"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+
+                <div className="survey-progress-text">
+                  {progress.currentStep} of {progress.totalSteps} complete
+                </div>
+              </div>
+
               <button className="back-link" onClick={() => setScreen("platforms")}>
                 ← Back
               </button>
@@ -838,6 +912,19 @@ function exportResponsesCsv() {
               <div className="topbar">
                 <span>Step 5 of 7</span>
                 <span>Reaction Signal</span>
+              </div>
+
+              <div className="survey-progress">
+                <div className="survey-progress-track">
+                  <div
+                    className="survey-progress-fill"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+
+                <div className="survey-progress-text">
+                  {progress.currentStep} of {progress.totalSteps} complete
+                </div>
               </div>
 
               <button className="back-link" onClick={() => setScreen("title")}>
@@ -938,6 +1025,19 @@ function exportResponsesCsv() {
                 <span>What Landed</span>
               </div>
 
+              <div className="survey-progress">
+                <div className="survey-progress-track">
+                  <div
+                    className="survey-progress-fill"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+
+                <div className="survey-progress-text">
+                  {progress.currentStep} of {progress.totalSteps} complete
+                </div>
+              </div>
+
               <button className="back-link" onClick={() => setScreen("buzz")}>
                 ← Back
               </button>
@@ -1018,6 +1118,19 @@ function exportResponsesCsv() {
               <div className="topbar">
                 <span>Step 7 of 7</span>
                 <span>Final Take</span>
+              </div>
+
+              <div className="survey-progress">
+                <div className="survey-progress-track">
+                  <div
+                    className="survey-progress-fill"
+                    style={{ width: `${progress.percentage}%` }}
+                  />
+                </div>
+
+                <div className="survey-progress-text">
+                  {progress.currentStep} of {progress.totalSteps} complete
+                </div>
               </div>
 
               <button className="back-link" onClick={() => setScreen("standout")}>
