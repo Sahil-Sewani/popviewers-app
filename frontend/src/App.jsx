@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./index.css";
 import logo from "./assets/logo.png";
+import starzLogo from "./assets/starz.png";
 import { API_URL } from "./config";
 import {
   getAdminToken,
@@ -47,14 +48,13 @@ function getStepProgress(screen) {
     signup: 1,
     discover: 2,
     platforms: 3,
-    title: 4,
-    buzz: 5,
-    standout: 6,
-    final: 7,
+    buzz: 4,
+    standout: 5,
+    final: 6,
   };
 
   const currentStep = steps[screen] || 1;
-  const totalSteps = 7;
+  const totalSteps = 6;
 
   return {
     currentStep,
@@ -392,6 +392,16 @@ function exportResponsesCsv() {
                   <img src={logo} alt="PopViewers Logo" className="logo" />
                 </div>
 
+                <div className="partner-section">
+                <div className="partner-label">In partnership with</div>
+
+                <img
+                  src={starzLogo}
+                  alt="STARZ"
+                  className="partner-logo"
+                />
+              </div>
+
                 <div className="section glass-card hero">
                   <div className="eyebrow">PopViewers Presents</div>
 
@@ -415,13 +425,18 @@ function exportResponsesCsv() {
                 <div className="subtle-note">
                   Thank you for taking a few minutes to share your feedback.
                 </div>
+
+                <div className="powered-by">
+                  Built by 9o5 Enterprises
+                </div>
+
                 </section>
                 )}
 
                 {screen === "signup" && (
                   <section className="screen">
                     <div className="topbar">
-                      <span>Step 1 of 7</span>
+                      <span>Step 1 of 6</span>
                       <span>Join the List</span>
                     </div>
 
@@ -510,7 +525,7 @@ function exportResponsesCsv() {
           {screen === "discover" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 2 of 7</span>
+                <span>Step 2 of 6</span>
                 <span>Before Tonight</span>
               </div>
 
@@ -539,7 +554,7 @@ function exportResponsesCsv() {
                   experience before today's screening.
               </p>
 
-              <h2>Before tonight, how familiar were you with today's featured title?</h2>
+              <h2>Before tonight, how familiar were you with Fightland?</h2>
 
               <p>Select the option that best describes you.</p>
 
@@ -621,7 +636,7 @@ function exportResponsesCsv() {
                   onClick={() => {
                     if (!formData.title_familiarity) {
                       alert(
-                        "Please tell us how familiar you were with the featured title."
+                        "Please tell us how familiar you were with the Fightland title before tonight's screening."
                       );
                       return;
                     }
@@ -643,7 +658,7 @@ function exportResponsesCsv() {
           {screen === "platforms" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 3 of 7</span>
+                <span>Step 3 of 6</span>
                 <span>Viewing Habits</span>
               </div>
 
@@ -847,7 +862,7 @@ function exportResponsesCsv() {
                       return;
                     }
 
-                    setScreen("title");
+                    setScreen("buzz");
                   }}
                 >
                   Continue
@@ -856,11 +871,11 @@ function exportResponsesCsv() {
               </section>
               )}
 
-          {screen === "title" && (
+          {screen === "buzz" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 4 of 7</span>
-                <span>Fightland</span>
+                <span>Step 4 of 6</span>
+                <span>Reaction Signal</span>
               </div>
 
               <div className="survey-progress">
@@ -880,56 +895,21 @@ function exportResponsesCsv() {
                 ← Back
               </button>
 
-              <h2>You’re reviewing Fightland</h2>
-              <p>Confirm the screening you just attended.</p>
+              <h2>Fightland</h2>
+              <p>Tell us what you thought about tonight's exclusive premiere.</p>
 
               <div className="section stack">
                 <div className="title-option selected">
                   <div className="title-meta">
                     <div className="title-name">Fightland Premiere</div>
                     <div className="title-sub">
-                      STARZ Original · ViewerCon Screening
+                      STARZ Original • Exclusive ViewerCon Premiere
                     </div>
                   </div>
 
                   <div className="pill">Tonight</div>
                 </div>
               </div>
-
-              <div className="nav-row">
-                <button
-                  className="button primary"
-                  onClick={() => setScreen("buzz")}
-                >
-                  Continue
-                </button>
-              </div>
-            </section>
-          )}
-
-          {screen === "buzz" && (
-            <section className="screen">
-              <div className="topbar">
-                <span>Step 5 of 7</span>
-                <span>Reaction Signal</span>
-              </div>
-
-              <div className="survey-progress">
-                <div className="survey-progress-track">
-                  <div
-                    className="survey-progress-fill"
-                    style={{ width: `${progress.percentage}%` }}
-                  />
-                </div>
-
-                <div className="survey-progress-text">
-                  {progress.currentStep} of {progress.totalSteps} complete
-                </div>
-              </div>
-
-              <button className="back-link" onClick={() => setScreen("title")}>
-                ← Back
-              </button>
 
               <h2>How excited are you about this title?</h2>
               <p>Give us your immediate reaction while it’s fresh.</p>
@@ -1000,7 +980,7 @@ function exportResponsesCsv() {
                   className="button primary"
                   onClick={() => {
                     if (!formData.recommend) {
-                      alert("Please tell us whether you would recommend the featured title.");
+                      alert("Please tell us whether you would recommend Fightland.");
                       return;
                     }
 
@@ -1021,7 +1001,7 @@ function exportResponsesCsv() {
           {screen === "standout" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 6 of 7</span>
+                <span>Step 5 of 6</span>
                 <span>What Landed</span>
               </div>
 
@@ -1116,7 +1096,7 @@ function exportResponsesCsv() {
           {screen === "final" && (
             <section className="screen">
               <div className="topbar">
-                <span>Step 7 of 7</span>
+                <span>Step 6 of 6</span>
                 <span>Final Take</span>
               </div>
 
@@ -1211,26 +1191,37 @@ function exportResponsesCsv() {
 
               <div className="section glass-card hero">
                 <div className="eyebrow">Success</div>
+
                 <h1>Thank You!</h1>
+
                 <p>
-                  Your feedback has been submitted successfully and will help
+                  Your feedback has been securely shared with the 
+                  PopViewers Audience Intelligence Platform and will help
                   shape future screenings, releases, and audience experiences.
                 </p>
+
+                <div className="partner-section">
+                  <img
+                    src={starzLogo}
+                    alt="STARZ"
+                    className="partner-logo"
+                  />
+                </div>
 
                 <div className="subtle-note">
                   We appreciate you taking the time to share your perspective.
                 </div>
 
                 <div className="button-row">
-                <button
-                  className="button primary"
-                  onClick={() => {
-                    setFormData(initialFormData);
-                    setScreen("landing");
-                  }}
-                >
-                  Finish
-                </button>
+                  <button
+                    className="button primary"
+                    onClick={() => {
+                      setFormData(initialFormData);
+                      setScreen("landing");
+                    }}
+                  >
+                    Finish
+                  </button>
                 </div>
               </div>
             </section>
