@@ -187,7 +187,7 @@ body,
 .hero {
   padding: 24px 22px 40px;
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface-strong);
 }
 
