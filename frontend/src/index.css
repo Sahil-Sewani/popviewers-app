@@ -231,6 +231,7 @@ p {
   display: flex;
   gap: 12px;
   margin-top: 20px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
 }
 
