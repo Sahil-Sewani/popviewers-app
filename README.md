@@ -4,6 +4,10 @@
 ![Status](https://img.shields.io/badge/status-Production-success)
 ![AWS](https://img.shields.io/badge/Hosted%20on-AWS-orange)
 
+## Live Application
+
+https://app.popviewers.com
+
 A cloud-native audience intelligence platform that enables studios, streaming services, production companies, and event organizers to collect structured audience feedback through mobile-first surveys and securely manage responses through an administrative portal.
 
 ---
