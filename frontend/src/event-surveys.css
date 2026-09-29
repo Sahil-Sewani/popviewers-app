@@ -25,3 +25,10 @@
 .event-workspace .event-choice { display: block; width: 100%; text-align: left; margin: 16px 0; }
 .event-workspace a { color: #136d62; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .event-workspace { padding: 20px 16px; } .event-title-row { grid-template-columns: 1fr; gap: 0; } .event-toolbar { align-items: stretch; } .event-toolbar > label, .event-toolbar form { width: 100%; } .event-workspace header { gap: 16px; } }
+
+
+/* Attendee survey: preserve the original PopViewers visual language from index.css. */
+.pv-dynamic-option { width: 100%; font: inherit; text-align: left; cursor: pointer; }
+.pv-dynamic-chip { font: inherit; cursor: pointer; }
+button.card-option, button.title-option, button.chip { appearance: none; -webkit-appearance: none; }
+.pv-survey-error { margin: 16px 0; padding: 12px 14px; border-radius: 12px; background: rgba(170,35,35,.12); font-size: 14px; line-height: 1.4; }

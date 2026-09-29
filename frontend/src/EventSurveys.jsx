@@ -132,10 +132,12 @@ export function EventSurvey({ onBack }) {
   const [answers, setAnswers] = useState({});
   const [contact, setContact] = useState({ first_name: "", last_name: "", email: "" });
   const [title, setTitle] = useState("");
+  const [step, setStep] = useState(0);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [reload, setReload] = useState(0);
+
   useEffect(() => {
     let active = true;
     const id = new URLSearchParams(window.location.search).get("event");
@@ -143,45 +145,109 @@ export function EventSurvey({ onBack }) {
       .then(data => {
         if (!active) return;
         setError("");
-        if (id) { setSurvey(data); setTitle(data.definition.titles.length === 1 ? String(data.definition.titles[0].id) : ""); }
-        else setEvents(data);
-      }).catch(e => { if (active) setError(e.message); });
+        if (id) {
+          setSurvey(data);
+          setTitle(data.definition.titles.length === 1 ? String(data.definition.titles[0].id) : "");
+          setStep(0);
+        } else if (data.length === 1) {
+          // With one published event, attendees go straight into its survey.
+          const onlyEvent = data[0];
+          request(`/event-surveys/${onlyEvent.campaign_id}`)
+            .then(eventSurvey => {
+              if (!active) return;
+              setSurvey(eventSurvey);
+              setTitle(
+                eventSurvey.definition.titles.length === 1
+                  ? String(eventSurvey.definition.titles[0].id)
+                  : ""
+              );
+              setStep(0);
+            })
+            .catch(e => { if (active) setError(e.message); });
+        } else {
+          // Zero events keeps the empty state; multiple events keep the chooser
+          // as a safety fallback instead of guessing which event is intended.
+          setEvents(data);
+        }
+      })
+      .catch(e => { if (active) setError(e.message); });
     return () => { active = false; };
   }, [reload]);
+
   async function open(id) {
     setBusy(true); setError("");
     try {
       const data = await request(`/event-surveys/${id}`);
-      setSurvey(data); setAnswers({}); setTitle(data.definition.titles.length === 1 ? String(data.definition.titles[0].id) : "");
+      setSurvey(data); setAnswers({}); setStep(0);
+      setContact({ first_name: "", last_name: "", email: "" });
+      setTitle(data.definition.titles.length === 1 ? String(data.definition.titles[0].id) : "");
+      window.history.replaceState({}, "", `${window.location.pathname}?event=${id}`);
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
-  async function submit(event) {
-    event.preventDefault(); if (busy) return;
+
+  const questions = survey?.definition?.questions ?? [];
+  const totalSteps = questions.length + 1;
+  const question = step > 0 ? questions[step - 1] : null;
+  const progress = totalSteps ? ((step + 1) / totalSteps) * 100 : 0;
+
+  function missing(q) {
+    const value = answers[q.id];
+    return q.kind === "multiple" ? !Array.isArray(value) || !value.length : value == null || String(value).trim() === "";
+  }
+
+  function next() {
+    setError("");
+    if (step === 0) {
+      if (!contact.first_name.trim()) return setError("Please enter your first name.");
+      if (!contact.last_name.trim()) return setError("Please enter your last name.");
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contact.email.trim())) return setError("Please enter a valid email address.");
+      if (!title) return setError("Please select what you watched.");
+    } else if (question.required && missing(question)) return setError("Please answer this question before continuing.");
+    setStep(v => Math.min(v + 1, totalSteps - 1));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function back() {
+    setError("");
+    if (step > 0) return setStep(v => v - 1);
+    window.history.replaceState({}, "", window.location.pathname);
+    setSurvey(null); setEvents(null); setReload(v => v + 1);
+  }
+
+  async function submit() {
+    if (busy || !question) return;
+    if (question.required && missing(question)) return setError("Please answer this question before submitting.");
     setBusy(true); setError("");
     try {
       await request("/event-responses", { method: "POST", body: JSON.stringify({ ...contact, version_id: survey.version_id, title_id: Number(title), answers }) });
-      setDone(true);
+      setDone(true); window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) { setError(e.message); }
     finally { setBusy(false); }
   }
-  return <main className="event-workspace event-attendee">
-    <header><img src={logo} alt="PopViewers" /><button onClick={onBack}>Back to home</button></header>
-    {error && <p role="alert" className="event-error">{error} {!survey && <button onClick={() => setReload(reload + 1)}>Retry</button>}</p>}
-    {done ? <><h1>Thank you!</h1><p>Your feedback has been received.</p></> : survey ? <>
-      <h1>{survey.definition.name}</h1><p>{survey.definition.introduction}</p>
-      <form onSubmit={submit}><fieldset disabled={busy}>
-        <section><h2>Your details</h2>{[["first_name", "First name"], ["last_name", "Last name"], ["email", "Email"]].map(([key, label]) => <label key={key}>{label}<input required maxLength={key === "email" ? 254 : 100} type={key === "email" ? "email" : "text"} value={contact[key]} onChange={e => setContact({ ...contact, [key]: e.target.value })} /></label>)}</section>
-        <label>What did you watch?<select required value={title} onChange={e => setTitle(e.target.value)}><option value="">Select a title</option>{survey.definition.titles.map(t => <option value={t.id} key={t.id}>{t.name}</option>)}</select></label>
-        {survey.definition.questions.map(q => <section className="event-answer" key={q.id}>
-          <label htmlFor={`answer-${q.id}`}>{q.label}{q.required ? " *" : ""}</label>
-          {q.kind === "multiple" ? <fieldset aria-label={q.label}>{q.options.map(option => <label className="event-check" key={option}><input type="checkbox" checked={(answers[q.id] || []).includes(option)} onChange={e => setAnswers({ ...answers, [q.id]: e.target.checked ? [...(answers[q.id] || []), option] : answers[q.id].filter(v => v !== option) })} />{option}</label>)}</fieldset>
-            : q.kind === "single" ? <select id={`answer-${q.id}`} required={q.required} value={answers[q.id] ?? ""} onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })}><option value="">Select an answer</option>{q.options.map(o => <option key={o}>{o}</option>)}</select>
-            : q.kind === "long_text" ? <textarea id={`answer-${q.id}`} required={q.required} maxLength={5000} value={answers[q.id] ?? ""} onChange={e => setAnswers({ ...answers, [q.id]: e.target.value })} />
-            : <input id={`answer-${q.id}`} required={q.required} type={q.kind === "rating" ? "number" : "text"} min={1} max={10} step={1} maxLength={5000} value={answers[q.id] ?? ""} onChange={e => setAnswers({ ...answers, [q.id]: q.kind === "rating" && e.target.value !== "" ? Number(e.target.value) : e.target.value })} />}
-        </section>)}
-        <button className="event-primary" disabled={busy}>{busy ? "Submitting..." : "Submit feedback"}</button>
-      </fieldset></form>
-    </> : <><h1>Choose your event</h1>{events === null && !error && <p role="status">Loading events...</p>}{events?.length === 0 && <p>No events are accepting feedback yet.</p>}{events?.map(e => <button className="event-choice" key={e.campaign_id} disabled={busy} onClick={() => open(e.campaign_id)}>{e.name}</button>)}</>}
-  </main>;
+
+  function setAnswer(q, value) { setAnswers(a => ({ ...a, [q.id]: value })); }
+  function toggle(q, option) {
+    const current = Array.isArray(answers[q.id]) ? answers[q.id] : [];
+    setAnswer(q, current.includes(option) ? current.filter(v => v !== option) : [...current, option]);
+  }
+
+  function questionInput(q) {
+    if (q.kind === "single") return <div className="section stack">{q.options.map(o => <button type="button" key={o} className={`card-option pv-dynamic-option ${answers[q.id] === o ? "selected" : ""}`} onClick={() => setAnswer(q, o)}>{o}</button>)}</div>;
+    if (q.kind === "multiple") return <><p>Select all that apply.</p><div className="section chip-wrap">{q.options.map(o => <button type="button" key={o} className={`chip pv-dynamic-chip ${(answers[q.id] || []).includes(o) ? "selected" : ""}`} onClick={() => toggle(q, o)}>{o}</button>)}</div></>;
+    if (q.kind === "rating") {
+      const value = answers[q.id] ?? 5;
+      return <div className="section slider-wrap"><div className="mini-label">Your rating</div><div className="slider-value">{value}/10</div><input type="range" min="1" max="10" value={value} onChange={e => setAnswer(q, Number(e.target.value))}/><div className="scale-row"><span>1</span><span>10</span></div></div>;
+    }
+    if (q.kind === "long_text") return <div className="section textarea-card"><textarea placeholder="Share your thoughts..." maxLength={5000} value={answers[q.id] ?? ""} onChange={e => setAnswer(q, e.target.value)}/><div className="helper">Take your time — your perspective matters.</div></div>;
+    return <div className="section textarea-card"><div className="input-box"><input type="text" placeholder="Type your answer..." maxLength={5000} value={answers[q.id] ?? ""} onChange={e => setAnswer(q, e.target.value)}/></div></div>;
+  }
+
+  const shell = children => <div className="app-bg"><div className="phone-shell"><div className="phone"><section className="screen">{children}</section></div></div></div>;
+
+  if (done) return shell(<><div className="topbar"><span>PopViewers</span><span>Feedback Received</span></div><div className="section glass-card hero"><div className="eyebrow">Success</div><h1>Thank You!</h1><p>Your feedback has been securely shared with the PopViewers Audience Intelligence Platform.</p><div className="subtle-note">We appreciate you taking the time to share your perspective.</div><div className="button-row"><button className="button primary" onClick={onBack}>Finish</button></div></div></>);
+
+  if (!survey) return shell(<><div className="topbar"><span>PopViewers</span><span>Choose Event</span></div><button className="back-link" onClick={onBack}>← Back</button><div className="logo-wrap"><img src={logo} alt="PopViewers Logo" className="logo" /></div><div className="section glass-card hero"><div className="eyebrow">PopViewers Presents</div><h1>Choose your event</h1><p>Select the screening or event you're attending.</p></div>{error && <p className="pv-survey-error">{error}</p>}{events === null && !error && <p className="subtle-note">Loading events...</p>}<div className="section stack">{events?.map(e => <button type="button" className="card-option pv-dynamic-option" key={e.campaign_id} disabled={busy} onClick={() => open(e.campaign_id)}>{e.name}</button>)}</div><div className="powered-by">Built by 9o5 Enterprises</div></>);
+
+  return shell(<><div className="topbar"><span>Step {step + 1} of {totalSteps}</span><span>{step === 0 ? "Join the List" : "Your Take"}</span></div><div className="survey-progress"><div className="survey-progress-track"><div className="survey-progress-fill" style={{ width: `${progress}%` }}/></div><div className="survey-progress-text">{step + 1} of {totalSteps} complete</div></div><button className="back-link" onClick={back}>← Back</button>{step === 0 ? <><div className="eyebrow">PopViewers Presents</div><h1>{survey.definition.name}</h1>{survey.definition.introduction && <p>{survey.definition.introduction}</p>}<h2 className="question-heading">Join Vibes & Views</h2><p>Start with a quick check-in before sharing your feedback.</p><div className="section stack">{[["first_name","First name","text"],["last_name","Last name","text"],["email","Email address","email"]].map(([field,placeholder,type]) => <div className="input-box" key={field}><input type={type} placeholder={placeholder} value={contact[field]} onChange={e => setContact(c => ({ ...c, [field]: e.target.value }))}/></div>)}</div><div className="section"><div className="mini-label">What did you watch?</div><div className="stack">{survey.definition.titles.map(t => <button type="button" key={t.id} className={`title-option pv-dynamic-option ${title === String(t.id) ? "selected" : ""}`} onClick={() => setTitle(String(t.id))}><div className="title-meta"><div className="title-name">{t.name}</div>{t.type && <div className="title-sub">{t.type}</div>}</div>{title === String(t.id) && <div className="pill">Selected</div>}</button>)}</div></div></> : <><div className="eyebrow">{survey.definition.name}</div><h2>{question.label}{question.required ? " *" : ""}</h2>{questionInput(question)}</>}{error && <p role="alert" className="pv-survey-error">{error}</p>}<div className="nav-row">{step < totalSteps - 1 ? <button className="button primary" onClick={next}>Continue</button> : <button className="button primary" onClick={submit} disabled={busy}>{busy ? "Submitting..." : "Submit Feedback"}</button>}</div><div className="powered-by">Built by 9o5 Enterprises</div></>);
 }
