@@ -187,13 +187,27 @@ export function EventSurvey({ onBack }) {
   }
 
   const questions = survey?.definition?.questions ?? [];
-  const totalSteps = questions.length + 1;
-  const question = step > 0 ? questions[step - 1] : null;
-  const progress = totalSteps ? ((step + 1) / totalSteps) * 100 : 0;
+  // Keep the attendee experience to exactly six survey screens:
+  // screen 1 = attendee details/title, screens 2-6 = dynamic question groups.
+  const totalSteps = 6;
+  const QUESTION_SCREEN_COUNT = 5;
+  const questionGroups = Array.from({ length: QUESTION_SCREEN_COUNT }, (_, groupIndex) => {
+    const startIndex = Math.floor((groupIndex * questions.length) / QUESTION_SCREEN_COUNT);
+    const endIndex = Math.floor(((groupIndex + 1) * questions.length) / QUESTION_SCREEN_COUNT);
+    return questions.slice(startIndex, endIndex);
+  });
+  const currentQuestions = step === 0 ? [] : questionGroups[step - 1];
+  const progress = ((step + 1) / totalSteps) * 100;
 
   function missing(q) {
     const value = answers[q.id];
-    return q.kind === "multiple" ? !Array.isArray(value) || !value.length : value == null || String(value).trim() === "";
+    return q.kind === "multiple"
+      ? !Array.isArray(value) || !value.length
+      : value == null || String(value).trim() === "";
+  }
+
+  function firstMissingRequired(group) {
+    return group.find(q => q.required && missing(q));
   }
 
   function next() {
@@ -201,9 +215,15 @@ export function EventSurvey({ onBack }) {
     if (step === 0) {
       if (!contact.first_name.trim()) return setError("Please enter your first name.");
       if (!contact.last_name.trim()) return setError("Please enter your last name.");
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return setError("Please enter a valid email address.");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) {
+        return setError("Please enter a valid email address.");
+      }
       if (!title) return setError("Please select what you watched.");
-    } else if (question.required && missing(question)) return setError("Please answer this question before continuing.");
+    } else {
+      const missingQuestion = firstMissingRequired(currentQuestions);
+      if (missingQuestion) return setError(`Please answer: ${missingQuestion.label}`);
+    }
+
     setStep(v => Math.min(v + 1, totalSteps - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -216,14 +236,28 @@ export function EventSurvey({ onBack }) {
   }
 
   async function submit() {
-    if (busy || !question) return;
-    if (question.required && missing(question)) return setError("Please answer this question before submitting.");
+    if (busy) return;
+    const missingQuestion = firstMissingRequired(currentQuestions);
+    if (missingQuestion) return setError(`Please answer: ${missingQuestion.label}`);
+
     setBusy(true); setError("");
     try {
-      await request("/event-responses", { method: "POST", body: JSON.stringify({ ...contact, version_id: survey.version_id, title_id: Number(title), answers }) });
-      setDone(true); window.scrollTo({ top: 0, behavior: "smooth" });
-    } catch (e) { setError(e.message); }
-    finally { setBusy(false); }
+      await request("/event-responses", {
+        method: "POST",
+        body: JSON.stringify({
+          ...contact,
+          version_id: survey.version_id,
+          title_id: Number(title),
+          answers,
+        }),
+      });
+      setDone(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   function setAnswer(q, value) { setAnswers(a => ({ ...a, [q.id]: value })); }
@@ -249,5 +283,5 @@ export function EventSurvey({ onBack }) {
 
   if (!survey) return shell(<><div className="topbar"><span>PopViewers</span><span>Choose Event</span></div><button className="back-link" onClick={onBack}>← Back</button><div className="logo-wrap"><img src={logo} alt="PopViewers Logo" className="logo" /></div><div className="section glass-card hero"><div className="eyebrow">PopViewers Presents</div><h1>Choose your event</h1><p>Select the screening or event you're attending.</p></div>{error && <p className="pv-survey-error">{error}</p>}{events === null && !error && <p className="subtle-note">Loading events...</p>}<div className="section stack">{events?.map(e => <button type="button" className="card-option pv-dynamic-option" key={e.campaign_id} disabled={busy} onClick={() => open(e.campaign_id)}>{e.name}</button>)}</div><div className="powered-by">Built by 9o5 Enterprises</div></>);
 
-  return shell(<><div className="topbar"><span>Step {step + 1} of {totalSteps}</span><span>{step === 0 ? "Join the List" : "Your Take"}</span></div><div className="survey-progress"><div className="survey-progress-track"><div className="survey-progress-fill" style={{ width: `${progress}%` }}/></div><div className="survey-progress-text">{step + 1} of {totalSteps} complete</div></div><button className="back-link" onClick={back}>← Back</button>{step === 0 ? <><div className="eyebrow">PopViewers Presents</div><h1>{survey.definition.name}</h1>{survey.definition.introduction && <p>{survey.definition.introduction}</p>}<h2 className="question-heading">Join Vibes & Views</h2><p>Start with a quick check-in before sharing your feedback.</p><div className="section stack">{[["first_name","First name","text"],["last_name","Last name","text"],["email","Email address","email"]].map(([field,placeholder,type]) => <div className="input-box" key={field}><input type={type} placeholder={placeholder} value={contact[field]} onChange={e => setContact(c => ({ ...c, [field]: e.target.value }))}/></div>)}</div><div className="section"><div className="mini-label">What did you watch?</div><div className="stack">{survey.definition.titles.map(t => <button type="button" key={t.id} className={`title-option pv-dynamic-option ${title === String(t.id) ? "selected" : ""}`} onClick={() => setTitle(String(t.id))}><div className="title-meta"><div className="title-name">{t.name}</div>{t.type && <div className="title-sub">{t.type}</div>}</div>{title === String(t.id) && <div className="pill">Selected</div>}</button>)}</div></div></> : <><div className="eyebrow">{survey.definition.name}</div><h2>{question.label}{question.required ? " *" : ""}</h2>{questionInput(question)}</>}{error && <p role="alert" className="pv-survey-error">{error}</p>}<div className="nav-row">{step < totalSteps - 1 ? <button className="button primary" onClick={next}>Continue</button> : <button className="button primary" onClick={submit} disabled={busy}>{busy ? "Submitting..." : "Submit Feedback"}</button>}</div><div className="powered-by">Built by 9o5 Enterprises</div></>);
+  return shell(<><div className="topbar"><span>Step {step + 1} of {totalSteps}</span><span>{step === 0 ? "Join the List" : "Your Take"}</span></div><div className="survey-progress"><div className="survey-progress-track"><div className="survey-progress-fill" style={{ width: `${progress}%` }}/></div><div className="survey-progress-text">{step + 1} of {totalSteps} complete</div></div><button className="back-link" onClick={back}>← Back</button>{step === 0 ? <><div className="eyebrow">PopViewers Presents</div><h1>{survey.definition.name}</h1>{survey.definition.introduction && <p>{survey.definition.introduction}</p>}<h2 className="question-heading">Join Vibes & Views</h2><p>Start with a quick check-in before sharing your feedback.</p><div className="section stack">{[["first_name","First name","text"],["last_name","Last name","text"],["email","Email address","email"]].map(([field,placeholder,type]) => <div className="input-box" key={field}><input type={type} placeholder={placeholder} value={contact[field]} onChange={e => setContact(c => ({ ...c, [field]: e.target.value }))}/></div>)}</div><div className="section"><div className="mini-label">What did you watch?</div><div className="stack">{survey.definition.titles.map(t => <button type="button" key={t.id} className={`title-option pv-dynamic-option ${title === String(t.id) ? "selected" : ""}`} onClick={() => setTitle(String(t.id))}><div className="title-meta"><div className="title-name">{t.name}</div>{t.type && <div className="title-sub">{t.type}</div>}</div>{title === String(t.id) && <div className="pill">Selected</div>}</button>)}</div></div></> : <><div className="eyebrow">{survey.definition.name}</div>{currentQuestions.map((question, index) => <div key={question.id} className={index === 0 ? "" : "pv-question-group"}><h2>{question.label}{question.required ? " *" : ""}</h2>{questionInput(question)}</div>)}</>}{error && <p role="alert" className="pv-survey-error">{error}</p>}<div className="nav-row">{step < totalSteps - 1 ? <button className="button primary" onClick={next}>Continue</button> : <button className="button primary" onClick={submit} disabled={busy}>{busy ? "Submitting..." : "Submit Feedback"}</button>}</div><div className="powered-by">Built by 9o5 Enterprises</div></>);
 }
