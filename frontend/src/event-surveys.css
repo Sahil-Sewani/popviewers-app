@@ -1,0 +1,27 @@
+.event-workspace { max-width: 1080px; margin: auto; padding: 28px; background: #fff; color: #202525; min-height: 100vh; }
+.event-workspace * { letter-spacing: 0; }
+.event-workspace header { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border-bottom: 1px solid #dce2e2; padding-bottom: 20px; margin-bottom: 24px; }
+.event-workspace header img { width: 100px; height: auto; }
+.event-workspace h1 { font-size: 28px; line-height: 1.2; overflow-wrap: anywhere; }
+.event-workspace h2 { font-size: 20px; line-height: 1.3; margin: 0 0 16px; }
+.event-workspace label { display: flex; flex-direction: column; gap: 8px; font-size: 14px; font-weight: 600; margin: 14px 0; min-width: 0; overflow-wrap: anywhere; }
+.event-workspace input, .event-workspace textarea, .event-workspace select { width: 100%; border: 1px solid #aebaba; background: white; border-radius: 5px; padding: 11px; font: inherit; color: #202525; min-width: 0; }
+.event-workspace textarea { min-height: 100px; resize: vertical; }
+.event-workspace :focus-visible { outline: 2px solid #137e72; outline-offset: 3px; }
+.event-workspace button { border: 1px solid #aebaba; padding: 10px 14px; border-radius: 5px; background: #f4f7f7; color: #202525; cursor: pointer; font: inherit; min-height: 42px; overflow-wrap: anywhere; }
+.event-workspace button:disabled { opacity: .5; cursor: not-allowed; }
+.event-workspace .event-primary { background: #146b60; border-color: #146b60; color: #fff; }
+.event-toolbar { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+.event-toolbar form { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.event-workspace fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.event-workspace section { padding: 24px 0; border-top: 1px solid #dce2e2; margin-top: 20px; }
+.event-title-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 14px; align-items: center; }
+.event-question { border: 1px solid #dce2e2; border-radius: 6px; padding: 18px; margin: 16px 0; }
+.event-workspace .event-check { flex-direction: row; align-items: center; font-weight: 400; }
+.event-workspace input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; accent-color: #146b60; }
+.event-error { background: #fff0ee; color: #942c28; padding: 14px; margin: 12px 0; overflow-wrap: anywhere; }
+.event-notice { background: #e7f6eb; color: #205934; padding: 14px; }
+.event-attendee { max-width: 660px; }
+.event-workspace .event-choice { display: block; width: 100%; text-align: left; margin: 16px 0; }
+.event-workspace a { color: #136d62; overflow-wrap: anywhere; }
+@media (max-width: 640px) { .event-workspace { padding: 20px 16px; } .event-title-row { grid-template-columns: 1fr; gap: 0; } .event-toolbar { align-items: stretch; } .event-toolbar > label, .event-toolbar form { width: 100%; } .event-workspace header { gap: 16px; } }

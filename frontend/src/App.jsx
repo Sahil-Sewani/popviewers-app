@@ -3,6 +3,7 @@ import "./index.css";
 import logo from "./assets/logo.png";
 import starzLogo from "./assets/starz.png";
 import { API_URL } from "./config";
+import { EventEditor, EventSurvey } from "./EventSurveys";
 import {
   getAdminToken,
   saveAdminToken,
@@ -78,11 +79,13 @@ function formatPhoneNumber(value) {
 }
 
 function App() {
-  const [screen, setScreen] = useState("landing");
+  const [screen, setScreen] = useState(new URLSearchParams(window.location.search).has("event") ? "eventSurvey" : "landing");
   const [responses, setResponses] = useState([]);
   const [formData, setFormData] = useState(initialFormData);
 
   const progress = getStepProgress(screen);
+  const ratedResponses = responses.filter(response => Number.isFinite(response.buzz_score));
+  const recommendations = responses.filter(response => response.recommend?.trim());
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -305,6 +308,8 @@ function exportResponsesCsv() {
     "live_audience_experience",
     "comments",
     "created_at",
+    "survey_version_id",
+    "survey_answers",
   ];
 
   const rows = responses.map((response) => [
@@ -338,12 +343,18 @@ function exportResponsesCsv() {
     response.live_audience_experience ?? "",
     response.comments ?? "",
     response.created_at ?? "",
+    response.survey_version_id ?? "",
+    JSON.stringify(response.survey_answers ?? []),
   ]);
 
   const csvContent = [headers, ...rows]
     .map((row) =>
       row
-        .map((value) => `"${String(value).replaceAll('"', '""')}"`)
+        .map((value) => {
+          const text = String(value);
+          const safe = /^[\s]*[=+@-]/.test(text) ? `'${text}` : text;
+          return `"${safe.replaceAll('"', '""')}"`;
+        })
         .join(",")
     )
     .join("\n");
@@ -364,6 +375,13 @@ function exportResponsesCsv() {
 
   URL.revokeObjectURL(url);
 }
+
+  if (screen === "eventEditor" && adminToken) {
+    return <EventEditor token={adminToken} onBack={() => loadAdminResponses()} />;
+  }
+  if (screen === "eventSurvey") {
+    return <EventSurvey onBack={() => setScreen("landing")} />;
+  }
 
   return (
     <div className="app-bg">
@@ -392,30 +410,20 @@ function exportResponsesCsv() {
                   <img src={logo} alt="PopViewers Logo" className="logo" />
                 </div>
 
-                <div className="partner-section">
-                <div className="partner-label">In partnership with</div>
-
-                <img
-                  src={starzLogo}
-                  alt="STARZ"
-                  className="partner-logo"
-                />
-              </div>
-
                 <div className="section glass-card hero">
                   <div className="eyebrow">PopViewers Presents</div>
 
-                  <h1>Welcome to ViewerCon</h1>
+                  <h1>Welcome to PopViewers</h1>
 
                   <p>
-                    We're excited to have you here! Share your thoughts on today's screening and
+                    We're excited to have you here! Choose your event and share your thoughts to
                     help shape the future of entertainment through audience insights.
                   </p>
 
                   <div className="button-row">
                     <button
                       className="button primary"
-                      onClick={() => setScreen("signup")}
+                      onClick={() => setScreen("eventSurvey")}
                     >
                       Join Now
                     </button>
@@ -1319,6 +1327,9 @@ function exportResponsesCsv() {
               <h2>Responses</h2>
 
               <div className="nav-row">
+                <button className="button primary" onClick={() => setScreen("eventEditor")}>
+                  Manage events and questions
+                </button>
                 <button
                   className="button secondary"
                   onClick={exportResponsesCsv}
@@ -1337,27 +1348,27 @@ function exportResponsesCsv() {
 
                 <p>
                   <strong>Average Buzz:</strong>{" "}
-                  {responses.length === 0
+                  {ratedResponses.length === 0
                     ? "N/A"
                     : (
-                        responses.reduce(
+                        ratedResponses.reduce(
                           (sum, response) => sum + (response.buzz_score || 0),
                           0
-                        ) / responses.length
+                        ) / ratedResponses.length
                       ).toFixed(1)}
                   /10
                 </p>
 
                 <p>
                   <strong>Recommend Rate:</strong>{" "}
-                  {responses.length === 0
+                  {recommendations.length === 0
                     ? "N/A"
                     : `${Math.round(
-                        (responses.filter(
+                        (recommendations.filter(
                           (response) =>
                             (response.recommend || "").toLowerCase() === "yes"
                         ).length /
-                          responses.length) *
+                          recommendations.length) *
                           100
                       )}%`}
                 </p>
@@ -1370,6 +1381,10 @@ function exportResponsesCsv() {
                   </strong>
 
                   <p>{response.email}</p>
+                  <p>{response.campaign_name} - {response.title_name}</p>
+                  {response.survey_answers?.map(answer => <p key={answer.id}>
+                    <strong>{answer.question}:</strong> {Array.isArray(answer.answer) ? answer.answer.join(", ") : answer.answer ?? "Not answered"}
+                  </p>)}
 
                   <p>
                     <strong>Buzz:</strong> {response.buzz_score}/10
