@@ -13,7 +13,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.database import Base, engine, get_db
-from app.models import Campaign, SurveyResponse, Title
+from app.models import Campaign, SurveyResponse, Title, EventSurveyAnswer, EventSurveyVersion
+from app.event_surveys import make_router
 from app.schemas import (
     CampaignCreate,
     CampaignOut,
@@ -84,6 +85,9 @@ def require_admin(
         raise HTTPException(status_code=401, detail="Invalid token")
 
     return True
+
+
+app.include_router(make_router(require_admin))
 
 
 app.add_middleware(
@@ -258,11 +262,26 @@ def list_responses(
         .all()
     )
 
+    snapshots = {
+        answer.response_id: (answer, version)
+        for answer, version in db.query(EventSurveyAnswer, EventSurveyVersion)
+        .join(EventSurveyVersion, EventSurveyVersion.id == EventSurveyAnswer.version_id).all()
+    }
+
     return [
         {
             **response.__dict__,
             "campaign_name": campaign_name,
             "title_name": title_name,
+            **({
+                "campaign_name": snapshots[response.id][1].definition["name"],
+                "title_name": snapshots[response.id][0].title_name,
+                "survey_version_id": snapshots[response.id][0].version_id,
+                "survey_answers": [
+                    {"question": q["label"], "id": q["id"], "answer": snapshots[response.id][0].answers.get(q["id"])}
+                    for q in snapshots[response.id][1].definition["questions"]
+                ],
+            } if response.id in snapshots else {}),
         }
         for response, campaign_name, title_name in rows
     ]

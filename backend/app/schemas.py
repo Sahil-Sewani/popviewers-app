@@ -76,6 +76,8 @@ class SurveyResponseOut(SurveyResponseCreate):
     campaign_name: Optional[str] = None
     title_name: Optional[str] = None
     created_at: Optional[datetime] = None
+    survey_version_id: Optional[int] = None
+    survey_answers: list[dict] = []
 
     model_config = {
         "from_attributes": True

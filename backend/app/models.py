@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text, JSON
 from sqlalchemy.sql import func
 
 from app.database import Base
@@ -61,3 +61,21 @@ class SurveyResponse(Base):
     comments = Column(Text, nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class EventSurveyVersion(Base):
+    __tablename__ = "event_survey_versions"
+
+    id = Column(Integer, primary_key=True)
+    campaign_id = Column(Integer, ForeignKey("campaigns.id"), nullable=False, index=True)
+    definition = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class EventSurveyAnswer(Base):
+    __tablename__ = "event_survey_answers"
+
+    response_id = Column(Integer, ForeignKey("responses.id"), primary_key=True)
+    version_id = Column(Integer, ForeignKey("event_survey_versions.id"), nullable=False)
+    answers = Column(JSON, nullable=False)
+    title_name = Column(String, nullable=False)
