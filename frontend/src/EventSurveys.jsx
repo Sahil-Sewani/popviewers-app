@@ -201,7 +201,7 @@ export function EventSurvey({ onBack }) {
     if (step === 0) {
       if (!contact.first_name.trim()) return setError("Please enter your first name.");
       if (!contact.last_name.trim()) return setError("Please enter your last name.");
-      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(contact.email.trim())) return setError("Please enter a valid email address.");
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())) return setError("Please enter a valid email address.");
       if (!title) return setError("Please select what you watched.");
     } else if (question.required && missing(question)) return setError("Please answer this question before continuing.");
     setStep(v => Math.min(v + 1, totalSteps - 1));
