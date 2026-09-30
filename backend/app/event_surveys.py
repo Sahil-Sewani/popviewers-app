@@ -70,6 +70,8 @@ class Submission(BaseModel):
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
     email: str = Field(min_length=1, max_length=254)
+    phone: Optional[str] = Field(default=None, max_length=50)
+    instagram: Optional[str] = Field(default=None, max_length=100)
     answers: dict[str, Union[str, int, list[str]]]
 
 
@@ -194,8 +196,15 @@ def make_router(require_admin):
         validate_answers(version.definition, request.answers)
         from pydantic import ValidationError
         try:
-            contact = SurveyResponseCreate(campaign_id=campaign.id, title_id=request.title_id,
-                first_name=request.first_name, last_name=request.last_name, email=request.email)
+            contact = SurveyResponseCreate(
+                campaign_id=campaign.id,
+                title_id=request.title_id,
+                first_name=request.first_name,
+                last_name=request.last_name,
+                email=request.email,
+                phone=request.phone,
+                instagram=request.instagram,
+            )
         except ValidationError:
             raise HTTPException(422, "Enter a valid email address")
         values = contact.model_dump()
