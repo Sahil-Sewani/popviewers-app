@@ -26,9 +26,142 @@
 .event-workspace a { color: #136d62; overflow-wrap: anywhere; }
 @media (max-width: 640px) { .event-workspace { padding: 20px 16px; } .event-title-row { grid-template-columns: 1fr; gap: 0; } .event-toolbar { align-items: stretch; } .event-toolbar > label, .event-toolbar form { width: 100%; } .event-workspace header { gap: 16px; } }
 
+/* Dynamic attendee survey polish — scoped so the admin editor is unchanged. */
+.pv-dynamic-option {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
 
-/* Attendee survey: preserve the original PopViewers visual language from index.css. */
-.pv-dynamic-option { width: 100%; font: inherit; text-align: left; cursor: pointer; }
-.pv-dynamic-chip { font: inherit; cursor: pointer; }
-button.card-option, button.title-option, button.chip { appearance: none; -webkit-appearance: none; }
-.pv-survey-error { margin: 16px 0; padding: 12px 14px; border-radius: 12px; background: rgba(170,35,35,.12); font-size: 14px; line-height: 1.4; }
+.pv-option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pv-option-grid .card-option,
+.pv-option-grid .chip {
+  min-height: 64px;
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  line-height: 1.22;
+  font-size: 14px;
+  text-align: left;
+}
+
+.pv-option-grid-compact .chip {
+  border-radius: 18px;
+}
+
+.pv-option-emoji {
+  flex: 0 0 auto;
+  width: 27px;
+  font-size: 20px;
+  line-height: 1;
+  text-align: center;
+}
+
+.pv-option-text {
+  min-width: 0;
+  flex: 1 1 auto;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.pv-question-block {
+  min-width: 0;
+}
+
+.pv-question-group {
+  margin-top: 26px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.pv-question-title {
+  font-size: 24px;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.pv-survey-error {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(170, 35, 35, 0.10);
+  color: #8f2020;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+button.card-option,
+button.title-option,
+button.chip {
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+@media (max-width: 480px) {
+  .screen {
+    padding: 20px 16px 24px;
+  }
+
+  .topbar {
+    margin-bottom: 12px;
+  }
+
+  .survey-progress {
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-size: 30px;
+  }
+
+  .pv-question-title {
+    font-size: 21px;
+    line-height: 1.12;
+    margin-bottom: 8px;
+  }
+
+  .pv-option-grid {
+    gap: 8px;
+  }
+
+  .pv-option-grid .card-option,
+  .pv-option-grid .chip {
+    min-height: 58px;
+    padding: 10px 11px;
+    border-radius: 16px;
+    font-size: 13px;
+    gap: 7px;
+  }
+
+  .pv-option-emoji {
+    width: 23px;
+    font-size: 18px;
+  }
+
+  .pv-question-group {
+    margin-top: 22px;
+    padding-top: 20px;
+  }
+
+  .nav-row .button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 350px) {
+  .pv-option-grid {
+    grid-template-columns: 1fr;
+  }
+}
