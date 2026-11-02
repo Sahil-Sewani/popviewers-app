@@ -101,7 +101,6 @@ Resources:
                 Action:
                   - secretsmanager:GetSecretValue
                 Resource:
-                  - Fn::ImportValue: !Sub "${ProjectName}-${EnvironmentName}-DatabaseSecretArn"
                   - arn:aws:secretsmanager:us-east-1:003107248390:secret:popviewers/prod/admin-*
 
               - Sid: ReadDeploymentArtifacts
